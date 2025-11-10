@@ -399,6 +399,477 @@
           }
         };
 
+        // Helper function: Get color for severity
+        const getColorForSeverity = (severity) => {
+          const colors = {
+            'critical': '#fecaca',
+            'high': '#fed7aa',
+            'medium': '#fef3c7',
+            'low': '#dbeafe'
+          };
+          return colors[severity] || '#f3f4f6';
+        };
+
+        // Helper function: Find defects related to a reference
+        const findDefectsForReference = (reference, analysis) => {
+          const related = [];
+          const refLower = reference.toLowerCase();
+
+          ['fileA', 'fileB'].forEach(fileKey => {
+            if (analysis.phaseA && analysis.phaseA[fileKey]) {
+              analysis.phaseA[fileKey].forEach(preset => {
+                const potentialIssues = preset.findings.potentialIssues;
+                const issues = potentialIssues.issues || potentialIssues;
+
+                if (Array.isArray(issues)) {
+                  issues.forEach(issue => {
+                    if (issue.description && issue.description.toLowerCase().includes(refLower)) {
+                      related.push({
+                        type: issue.type,
+                        severity: issue.severity,
+                        description: issue.description
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+
+          return related;
+        };
+
+        // Helper function: Build matrix
+        const buildMatrix = (analysis) => {
+          const matrix = [];
+
+          // Get all statutory references
+          const refs = [];
+          if (analysis.phaseA) {
+            ['fileA', 'fileB'].forEach(fileKey => {
+              if (analysis.phaseA[fileKey] && analysis.phaseA[fileKey][0] &&
+                  analysis.phaseA[fileKey][0].findings &&
+                  analysis.phaseA[fileKey][0].findings.legalReferences) {
+                refs.push(...analysis.phaseA[fileKey][0].findings.legalReferences);
+              }
+            });
+          }
+
+          // Remove duplicates
+          const uniqueRefs = [];
+          const seen = new Set();
+          refs.forEach(ref => {
+            const key = `${ref.type}:${ref.text}`.toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueRefs.push(ref);
+            }
+          });
+
+          uniqueRefs.forEach(ref => {
+            const relatedDefects = findDefectsForReference(ref.text, analysis);
+            const highSeverity = relatedDefects.filter(d =>
+              d.severity === 'high' || d.severity === 'critical'
+            );
+            const compliant = highSeverity.length === 0;
+
+            matrix.push({
+              statute: ref.text,
+              section: ref.type,
+              defects: relatedDefects.slice(0, 5), // Limit to 5 for display
+              compliant: compliant,
+              action: determineAction(relatedDefects, compliant)
+            });
+          });
+
+          return matrix;
+        };
+
+        // Helper function: Determine action
+        const determineAction = (defects, compliant) => {
+          if (compliant) return 'No action required - monitoring';
+
+          const highSeverity = defects.filter(d =>
+            d.severity === 'high' || d.severity === 'critical'
+          );
+          if (highSeverity.length > 0) {
+            return '⚠️ URGENT: Review and address high-severity issues immediately';
+          }
+
+          return '📋 Review medium/low issues and plan remediation';
+        };
+
+        // Helper function: Detect patterns from historical data
+        const detectPatterns = (historicalAnalyses) => {
+          if (!historicalAnalyses || historicalAnalyses.length === 0) return [];
+
+          const patternCounts = {};
+
+          historicalAnalyses.forEach(analysis => {
+            if (analysis.defects) {
+              analysis.defects.forEach(defect => {
+                const key = `${defect.type}|${defect.severity}`;
+                if (!patternCounts[key]) {
+                  patternCounts[key] = {
+                    type: defect.type,
+                    severity: defect.severity,
+                    count: 0,
+                    descriptions: []
+                  };
+                }
+                patternCounts[key].count++;
+                if (patternCounts[key].descriptions.length < 3) {
+                  patternCounts[key].descriptions.push(defect.description);
+                }
+              });
+            }
+          });
+
+          return Object.values(patternCounts).filter(p => p.count >= 2);
+        };
+
+        // Cross-Reference Matrix Component
+        const CrossReferenceMatrix = ({ analysis }) => {
+          const matrix = React.useMemo(() => buildMatrix(analysis), [analysis]);
+
+          if (!matrix || matrix.length === 0) {
+            return (
+              <div style={{ padding: '20px', backgroundColor: '#f9fafb', textAlign: 'center' }}>
+                <p style={{ color: '#6b7280' }}>No statutory references found to create cross-reference matrix.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>🔗 Cross-Reference Matrix</h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+                Relationships between statutory references and identified defects
+              </p>
+
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                backgroundColor: 'white',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f3f4f6' }}>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Statutory Reference</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Related Defects</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Compliance Status</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Action Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matrix.map((row, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        <strong style={{ fontSize: '14px' }}>{row.statute}</strong>
+                        <br />
+                        <span style={{ fontSize: '12px', color: '#666' }}>
+                          {row.section}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        {row.defects.length > 0 ? (
+                          row.defects.map((d, i) => (
+                            <div key={i} style={{
+                              padding: '4px 8px',
+                              marginBottom: '4px',
+                              backgroundColor: getColorForSeverity(d.severity),
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              border: '1px solid #e5e7eb'
+                            }}>
+                              <strong>[{d.severity.toUpperCase()}]</strong> {d.type}
+                            </div>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: '12px', color: '#6b7280' }}>No related defects</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        <span style={{
+                          padding: '4px 12px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          backgroundColor: row.compliant ? '#d1fae5' : '#fee2e2',
+                          color: row.compliant ? '#065f46' : '#991b1b'
+                        }}>
+                          {row.compliant ? '✅ Compliant' : '⚠️ Non-Compliant'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', fontSize: '13px', verticalAlign: 'top' }}>
+                        {row.action}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        };
+
+        // Contextual Intelligence Enhancement
+        const ContextualIntelligence = {
+          async enhanceFindings(currentAnalysis, historicalAnalyses) {
+            return {
+              ...currentAnalysis,
+              contextualInsights: {
+                // Compare current to historical average
+                severity: this.compareSeverity(currentAnalysis, historicalAnalyses),
+
+                // Identify if issues are worsening or improving
+                trend: this.analyzeTrend(currentAnalysis, historicalAnalyses),
+
+                // Suggest specific actions based on patterns
+                recommendations: this.generateSmartRecommendations(currentAnalysis, historicalAnalyses),
+
+                // Highlight new issue types never seen before
+                novelIssues: this.identifyNovelIssues(currentAnalysis, historicalAnalyses)
+              }
+            };
+          },
+
+          countSeverity(analysis, severity) {
+            let count = 0;
+            if (analysis.findings && analysis.findings.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (analysis.findings.phaseA[fileKey]) {
+                  analysis.findings.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      count += issues.filter(i => i.severity === severity).length;
+                    }
+                  });
+                }
+              });
+            } else if (analysis.defects) {
+              count = analysis.defects.filter(d => d.severity === severity).length;
+            }
+            return count;
+          },
+
+          compareSeverity(current, historical) {
+            if (!historical || historical.length === 0) {
+              return {
+                status: 'baseline',
+                message: 'This is your first analysis - establishing baseline metrics'
+              };
+            }
+
+            const currentHigh = this.countSeverity({ findings: current }, 'high');
+            const currentCritical = this.countSeverity({ findings: current }, 'critical');
+            const currentTotal = currentHigh + currentCritical;
+
+            const avgHigh = historical.reduce((sum, a) =>
+              sum + this.countSeverity(a, 'high'), 0) / historical.length;
+            const avgCritical = historical.reduce((sum, a) =>
+              sum + this.countSeverity(a, 'critical'), 0) / historical.length;
+            const avgTotal = avgHigh + avgCritical;
+
+            if (avgTotal === 0) {
+              return {
+                status: 'baseline',
+                message: 'Insufficient historical data for comparison'
+              };
+            }
+
+            if (currentTotal > avgTotal * 1.5) {
+              return {
+                status: 'worse',
+                message: `⚠️ Current analysis shows ${Math.round((currentTotal / avgTotal - 1) * 100)}% more high-severity issues than historical average`,
+                data: { current: currentTotal, average: avgTotal.toFixed(1) }
+              };
+            } else if (currentTotal < avgTotal * 0.5 && avgTotal > 0) {
+              return {
+                status: 'better',
+                message: `✅ Significant improvement: ${Math.round((1 - currentTotal / avgTotal) * 100)}% fewer high-severity issues`,
+                data: { current: currentTotal, average: avgTotal.toFixed(1) }
+              };
+            }
+
+            return {
+              status: 'stable',
+              message: 'Issue severity within normal range',
+              data: { current: currentTotal, average: avgTotal.toFixed(1) }
+            };
+          },
+
+          analyzeTrend(current, historical) {
+            if (!historical || historical.length < 2) {
+              return {
+                direction: 'insufficient_data',
+                message: 'Need at least 2 historical analyses to detect trends'
+              };
+            }
+
+            // Look at last 5 analyses
+            const recent = historical.slice(-5);
+            const counts = recent.map(a => this.countSeverity(a, 'high') + this.countSeverity(a, 'critical'));
+
+            // Simple linear trend
+            const trend = counts[counts.length - 1] - counts[0];
+
+            if (trend > 2) {
+              return {
+                direction: 'worsening',
+                message: '📈 Issues increasing over recent analyses - systematic review recommended',
+                data: { change: trend, samples: counts.length }
+              };
+            } else if (trend < -2) {
+              return {
+                direction: 'improving',
+                message: '📉 Issues decreasing - current processes appear effective',
+                data: { change: trend, samples: counts.length }
+              };
+            }
+
+            return {
+              direction: 'stable',
+              message: 'No significant trend detected',
+              data: { change: trend, samples: counts.length }
+            };
+          },
+
+          generateSmartRecommendations(current, historical) {
+            const recommendations = [];
+
+            // Get current issues
+            const currentIssues = [];
+            if (current.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (current.phaseA[fileKey]) {
+                  current.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      currentIssues.push(...issues);
+                    }
+                  });
+                }
+              });
+            }
+
+            // Check for recurring high-severity issues
+            const highSeverity = currentIssues.filter(i => i.severity === 'high' || i.severity === 'critical');
+            if (highSeverity.length > 3) {
+              recommendations.push({
+                priority: 'high',
+                category: 'Quality Control',
+                recommendation: 'Multiple high-severity issues detected. Consider implementing a document review checklist before submission.',
+                impact: 'Reduce critical defects by 40-60%'
+              });
+            }
+
+            // Check for missing statutory references
+            const missingRefs = currentIssues.filter(i =>
+              i.type && (i.type.includes('Missing') || i.type.includes('Statute'))
+            );
+            if (missingRefs.length > 0) {
+              recommendations.push({
+                priority: 'medium',
+                category: 'Statutory Compliance',
+                recommendation: 'Create a statutory reference template for this document type to ensure all required references are included.',
+                impact: 'Improve compliance by 30-50%'
+              });
+            }
+
+            // Check for procedural issues
+            const proceduralIssues = currentIssues.filter(i =>
+              i.type && (i.type.includes('Procedural') || i.type.includes('Fairness'))
+            );
+            if (proceduralIssues.length > 0) {
+              recommendations.push({
+                priority: 'high',
+                category: 'Procedural Compliance',
+                recommendation: 'Review procedural requirements and implement mandatory peer review for procedural fairness.',
+                impact: 'Reduce jurisdictional errors'
+              });
+            }
+
+            if (recommendations.length === 0) {
+              recommendations.push({
+                priority: 'low',
+                category: 'Monitoring',
+                recommendation: 'Continue current document preparation processes - quality metrics are within acceptable range.',
+                impact: 'Maintain current standards'
+              });
+            }
+
+            return recommendations;
+          },
+
+          identifyNovelIssues(current, historical) {
+            if (!historical || historical.length === 0) {
+              return [];
+            }
+
+            // Get all historical issue types
+            const historicalTypes = new Set();
+            historical.forEach(analysis => {
+              if (analysis.defects) {
+                analysis.defects.forEach(defect => {
+                  historicalTypes.add(defect.type);
+                });
+              }
+            });
+
+            // Find current issues that are new
+            const novelIssues = [];
+            if (current.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (current.phaseA[fileKey]) {
+                  current.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      issues.forEach(issue => {
+                        if (!historicalTypes.has(issue.type)) {
+                          novelIssues.push({
+                            type: issue.type,
+                            severity: issue.severity,
+                            description: issue.description,
+                            preset: preset.preset
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
+
+            return novelIssues;
+          }
+        };
+
         const ForensicLegalAnalyzer = () => {
           const [files, setFiles] = useState({ fileA: null, fileB: null });
           const [fileContents, setFileContents] = useState({ fileA: '', fileB: '' });
@@ -408,6 +879,7 @@
           const [expandedSections, setExpandedSections] = useState({});
           const [historicalAnalyses, setHistoricalAnalyses] = useState([]);
           const [detectedPatterns, setDetectedPatterns] = useState(null);
+          const [contextualInsights, setContextualInsights] = useState(null);
           const fileInputA = useRef(null);
           const fileInputB = useRef(null);
 
@@ -552,6 +1024,11 @@
               const patterns = await PatternDetector.analyze(finalResults, updatedAnalyses);
               setDetectedPatterns(patterns);
               console.log('Pattern detection completed:', patterns);
+
+              // Run contextual intelligence analysis
+              const insights = await ContextualIntelligence.enhanceFindings(finalResults, updatedAnalyses);
+              setContextualInsights(insights.contextualInsights);
+              console.log('Contextual intelligence analysis completed:', insights.contextualInsights);
             }
 
             setAnalysisState('complete');
@@ -1783,6 +2260,10 @@
                       </div>
                     </AnalysisSection>
 
+                    <AnalysisSection title="🔗 Cross-Reference Matrix" sectionId="crossReference">
+                      <CrossReferenceMatrix analysis={analysisResults} />
+                    </AnalysisSection>
+
                     <AnalysisSection title="Phase C: Statutory Interpretation & Legislative Purpose" sectionId="phaseC">
                       <div style={{ marginTop: '16px' }}>
                         <div style={{
@@ -2127,6 +2608,207 @@
                               }}>
                                 ✅ No recurring patterns detected. Continue monitoring future analyses for emerging trends.
                               </p>
+                            </div>
+                          )}
+                        </div>
+                      </AnalysisSection>
+                    )}
+
+                    {contextualInsights && (
+                      <AnalysisSection title="🧠 Contextual Intelligence & Trend Analysis" sectionId="contextual">
+                        <div style={{ marginTop: '16px' }}>
+                          {/* Severity Comparison */}
+                          <div style={{
+                            backgroundColor: contextualInsights.severity.status === 'worse' ? '#fef2f2' :
+                                           contextualInsights.severity.status === 'better' ? '#f0fdf4' : '#eff6ff',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              contextualInsights.severity.status === 'worse' ? '#dc2626' :
+                              contextualInsights.severity.status === 'better' ? '#16a34a' : '#2563eb'
+                            }`,
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: contextualInsights.severity.status === 'worse' ? '#7f1d1d' :
+                                     contextualInsights.severity.status === 'better' ? '#14532d' : '#1e40af',
+                              marginBottom: '12px'
+                            }}>📊 Severity Comparison</h4>
+                            <p style={{
+                              fontSize: '14px',
+                              color: contextualInsights.severity.status === 'worse' ? '#991b1b' :
+                                     contextualInsights.severity.status === 'better' ? '#166534' : '#1e40af',
+                              marginBottom: '8px'
+                            }}>
+                              {contextualInsights.severity.message}
+                            </p>
+                            {contextualInsights.severity.data && (
+                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
+                                Current: {contextualInsights.severity.data.current} | Historical Average: {contextualInsights.severity.data.average}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Trend Analysis */}
+                          <div style={{
+                            backgroundColor: contextualInsights.trend.direction === 'worsening' ? '#fef2f2' :
+                                           contextualInsights.trend.direction === 'improving' ? '#f0fdf4' : '#eff6ff',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              contextualInsights.trend.direction === 'worsening' ? '#dc2626' :
+                              contextualInsights.trend.direction === 'improving' ? '#16a34a' : '#2563eb'
+                            }`,
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: contextualInsights.trend.direction === 'worsening' ? '#7f1d1d' :
+                                     contextualInsights.trend.direction === 'improving' ? '#14532d' : '#1e40af',
+                              marginBottom: '12px'
+                            }}>📈 Trend Analysis</h4>
+                            <p style={{
+                              fontSize: '14px',
+                              color: contextualInsights.trend.direction === 'worsening' ? '#991b1b' :
+                                     contextualInsights.trend.direction === 'improving' ? '#166534' : '#1e40af'
+                            }}>
+                              {contextualInsights.trend.message}
+                            </p>
+                            {contextualInsights.trend.data && (
+                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
+                                Based on {contextualInsights.trend.data.samples} recent analyses
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Smart Recommendations */}
+                          {contextualInsights.recommendations && contextualInsights.recommendations.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fffbeb',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              borderLeft: '4px solid #f59e0b',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{
+                                fontWeight: '600',
+                                color: '#78350f',
+                                marginBottom: '12px'
+                              }}>💡 Smart Recommendations</h4>
+                              <p style={{
+                                fontSize: '13px',
+                                color: '#92400e',
+                                marginBottom: '12px'
+                              }}>
+                                Based on analysis of current and historical data, here are intelligent recommendations:
+                              </p>
+                              {contextualInsights.recommendations.map((rec, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  marginBottom: '8px',
+                                  border: '1px solid #fde68a'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'start',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{
+                                      fontSize: '14px',
+                                      color: '#78350f'
+                                    }}>{rec.category}</strong>
+                                    <span style={{
+                                      padding: '2px 8px',
+                                      borderRadius: '8px',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      backgroundColor: rec.priority === 'high' ? '#fee2e2' :
+                                                      rec.priority === 'medium' ? '#fef3c7' : '#dbeafe',
+                                      color: rec.priority === 'high' ? '#991b1b' :
+                                             rec.priority === 'medium' ? '#92400e' : '#1e40af'
+                                    }}>
+                                      {rec.priority.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    color: '#374151',
+                                    marginBottom: '6px'
+                                  }}>
+                                    {rec.recommendation}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '12px',
+                                    color: '#6b7280',
+                                    fontStyle: 'italic'
+                                  }}>
+                                    Expected Impact: {rec.impact}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Novel Issues */}
+                          {contextualInsights.novelIssues && contextualInsights.novelIssues.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fef3c7',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              borderLeft: '4px solid #f59e0b'
+                            }}>
+                              <h4 style={{
+                                fontWeight: '600',
+                                color: '#78350f',
+                                marginBottom: '12px'
+                              }}>🆕 Novel Issues Detected</h4>
+                              <p style={{
+                                fontSize: '13px',
+                                color: '#92400e',
+                                marginBottom: '12px'
+                              }}>
+                                The following issue types have not been seen in previous analyses:
+                              </p>
+                              {contextualInsights.novelIssues.map((issue, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '10px',
+                                  borderRadius: '4px',
+                                  marginBottom: '8px',
+                                  border: '1px solid #fde68a'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginBottom: '4px'
+                                  }}>
+                                    <span style={{
+                                      padding: '2px 8px',
+                                      borderRadius: '8px',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      backgroundColor: getColorForSeverity(issue.severity),
+                                      border: '1px solid #e5e7eb'
+                                    }}>
+                                      {issue.severity.toUpperCase()}
+                                    </span>
+                                    <strong style={{ fontSize: '13px', color: '#111827' }}>
+                                      {issue.type}
+                                    </strong>
+                                  </div>
+                                  <p style={{ fontSize: '12px', color: '#6b7280' }}>
+                                    {issue.description}
+                                  </p>
+                                  <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+                                    Detected in: {issue.preset}
+                                  </p>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
