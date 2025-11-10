@@ -1,0 +1,100 @@
+# Quick Installation Guide
+
+## Installation Steps
+
+1. **Download the Application**
+   - You have received `ForensicLegalAnalyzer.app`
+   - This is a complete macOS application bundle
+
+2. **Move to Applications Folder**
+   ```
+   Drag ForensicLegalAnalyzer.app → Applications folder
+   ```
+
+3. **First Launch**
+   - Double-click `ForensicLegalAnalyzer.app`
+   - **If you see a security warning:**
+     - Right-click (or Control-click) the app
+     - Select "Open" from the menu
+     - Click "Open" in the security dialog
+   - The app will launch in your default web browser
+
+4. **Verify Launch**
+   - Browser opens to: `http://localhost:8765`
+   - You should see the Forensic Legal Analyzer interface
+   - Two upload zones should be visible
+
+## Troubleshooting First Launch
+
+### "Cannot open because it is from an unidentified developer"
+
+**Solution:**
+1. Right-click the app
+2. Select "Open"
+3. Click "Open" in the dialog
+4. App will now launch normally
+
+### "Python 3 is required"
+
+**Solution:**
+1. Install Python 3 from https://www.python.org/downloads/
+2. Choose the latest Python 3.x version
+3. Run the installer
+4. Restart the Forensic Legal Analyzer
+
+### Browser Doesn't Open Automatically
+
+**Solution:**
+1. Open your web browser manually
+2. Navigate to: `http://localhost:8765`
+3. The application interface will load
+
+## System Requirements
+
+- macOS 10.13 or later
+- Python 3 (usually pre-installed)
+- Modern web browser
+- 4GB RAM minimum
+- Internet connection (first launch only, for loading dependencies)
+
+## Quick Start
+
+1. **Launch** the app (double-click)
+2. **Upload** Document A (primary exhibit)
+3. **Upload** Document B (comparison document)
+4. **Click** "Commence Forensic Analysis"
+5. **Review** results in expandable sections
+6. **Export** report (optional)
+
+## Stopping the Application
+
+### Method 1: Browser Close + Terminal
+1. Close the browser tab
+2. Find the Terminal window that opened
+3. Press `Ctrl+C` to stop the server
+
+### Method 2: Force Quit
+1. Right-click the app icon in Dock
+2. Select "Quit"
+
+### Method 3: Activity Monitor
+1. Open Activity Monitor
+2. Search for "ForensicLegalAnalyzer"
+3. Select and click "Force Quit"
+
+## Getting Help
+
+- Read `README.md` for full documentation
+- Read `USER_GUIDE.md` for usage examples
+- Check application interface for built-in help
+
+## Privacy Note
+
+- All processing happens locally on your Mac
+- No data is sent to external servers
+- Documents are processed in memory only
+- No persistent storage of your documents
+
+---
+
+**Ready to use!** Double-click the app to get started.

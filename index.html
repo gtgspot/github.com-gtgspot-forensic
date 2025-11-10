@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic Legal Analyzer</title>
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        #root {
+            width: 100%;
+            min-height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+        const { 
+            Upload, FileText, AlertCircle, CheckCircle, Loader, 
+            Download, Eye, ChevronDown, ChevronRight 
+        } = lucide;
+
+        const Icon = ({ name, ...props }) => {
+            const LucideIcon = lucide[name];
+            return React.createElement(LucideIcon, props);
+        };
+
+        const ForensicLegalAnalyzer = () => {
+          const [files, setFiles] = useState({ fileA: null, fileB: null });
+          const [fileContents, setFileContents] = useState({ fileA: '', fileB: '' });
+          const [analysisState, setAnalysisState] = useState('idle');
+          const [currentPhase, setCurrentPhase] = useState('');
+          const [analysisResults, setAnalysisResults] = useState(null);
+          const [expandedSections, setExpandedSections] = useState({});
+          const fileInputA = useRef(null);
+          const fileInputB = useRef(null);
+
+          const interpretivePresets = [
+            {
+              name: 'Statutory Procedural Analysis',
+              description: 'Examines compliance with statutory requirements, procedural mandates, and legislative frameworks',
+              focus: ['compliance', 'procedure', 'statutory_requirements', 'jurisdictional_prerequisites']
+            },
+            {
+              name: 'Contextual Analysis',
+              description: 'Evaluates meaning within broader legislative, factual, and temporal context',
+              focus: ['surrounding_circumstances', 'legislative_scheme', 'temporal_context', 'factual_matrix']
+            },
+            {
+              name: 'Jurisprudential Analysis',
+              description: 'Applies established legal principles, precedents, and interpretative doctrines',
+              focus: ['precedent', 'common_law_principles', 'interpretative_doctrines', 'judicial_reasoning']
+            },
+            {
+              name: 'Objective Textual Analysis',
+              description: 'Focuses on plain meaning, literal interpretation, and grammatical construction',
+              focus: ['plain_meaning', 'grammatical_analysis', 'ordinary_meaning', 'textual_structure']
+            },
+            {
+              name: 'Subjective Intent Analysis',
+              description: 'Considers apparent intentions, representations, and assertions within documents',
+              focus: ['stated_intentions', 'apparent_purposes', 'declarations', 'subjective_assertions']
+            },
+            {
+              name: 'Purposive Analysis',
+              description: 'Examines legislative purpose, policy objectives, and intended outcomes',
+              focus: ['legislative_purpose', 'policy_objectives', 'mischief_rule', 'intended_effect']
+            },
+            {
+              name: 'Comparative Cross-Reference Analysis',
+              description: 'Identifies inconsistencies, contradictions, and discrepancies between documents',
+              focus: ['consistency', 'contradictions', 'omissions', 'discrepancies']
+            },
+            {
+              name: 'Evidentiary Standards Analysis',
+              description: 'Evaluates evidentiary sufficiency, admissibility, and probative value',
+              focus: ['admissibility', 'relevance', 'probative_value', 'evidentiary_weight']
+            }
+          ];
+
+          const handleFileUpload = async (file, fileKey) => {
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              const content = e.target.result;
+              setFiles(prev => ({ ...prev, [fileKey]: file }));
+              setFileContents(prev => ({ ...prev, [fileKey]: content }));
+            };
+            reader.readAsText(file);
+          };
+
+          const handleUrlUpload = async (url, fileKey) => {
+            try {
+              const response = await fetch(url);
+              const content = await response.text();
+              setFiles(prev => ({ ...prev, [fileKey]: { name: url.split('/').pop(), type: 'url' } }));
+              setFileContents(prev => ({ ...prev, [fileKey]: content }));
+            } catch (error) {
+              alert('Failed to fetch document from URL. Please ensure the URL is accessible and points to a text document.');
+            }
+          };
+
+          const handleDragOver = (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          };
+
+          const handleDrop = (e, fileKey) => {
+            e.preventDefault();
+            e.stopPropagation();
+            const file = e.dataTransfer.files[0];
+            if (file) handleFileUpload(file, fileKey);
+          };
+
+          const simulateAnalysis = async () => {
+            setAnalysisState('analyzing');
+            setAnalysisResults(null);
+
+            setCurrentPhase('Phase A: Multi-Preset Forensic Examination');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const phaseAResults = {
+              fileA: interpretivePresets.map(preset => ({
+                preset: preset.name,
+                findings: generateFindings(fileContents.fileA, preset)
+              })),
+              fileB: interpretivePresets.map(preset => ({
+                preset: preset.name,
+                findings: generateFindings(fileContents.fileB, preset)
+              }))
+            };
+
+            setCurrentPhase('Phase B: Statutory Framework Identification & Cross-Reference Analysis');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const phaseBResults = performCrossReference(phaseAResults);
+
+            setCurrentPhase('Phase C: Statutory Interpretation & Legislative Purpose Analysis');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const phaseCResults = performStatutoryInterpretation(phaseAResults, phaseBResults);
+
+            setAnalysisResults({
+              phaseA: phaseAResults,
+              phaseB: phaseBResults,
+              phaseC: phaseCResults,
+              summary: generateExecutiveSummary(phaseAResults, phaseBResults, phaseCResults)
+            });
+
+            setAnalysisState('complete');
+            setCurrentPhase('Analysis Complete');
+          };
+
+          const generateFindings = (content, preset) => {
+            const words = content.split(/\s+/).filter(w => w.length > 0);
+            const lines = content.split('\n').filter(l => l.trim().length > 0);
+
+            return {
+              wordCount: words.length,
+              lineCount: lines.length,
+              keyTermsIdentified: extractKeyTerms(content, preset),
+              proceduralElements: identifyProceduralElements(content, preset),
+              legalReferences: extractLegalReferences(content),
+              potentialIssues: identifyPotentialIssues(content, preset),
+              contextualMarkers: extractContextualMarkers(content, preset)
+            };
+          };
+
+          const extractKeyTerms = (content, preset) => {
+            const legalTerms = ['section', 'act', 'regulation', 'pursuant', 'provision', 'subsection', 
+                                'statute', 'legislative', 'compliance', 'requirement', 'jurisdiction',
+                                'evidence', 'exhibit', 'disclosure', 'preliminary', 'test', 'analysis',
+                                'procedure', 'statutory', 'mandatory', 'discretionary', 'power'];
+            
+            const found = [];
+            const contentLower = content.toLowerCase();
+            
+            legalTerms.forEach(term => {
+              const regex = new RegExp(`\\b${term}\\b`, 'gi');
+              const matches = content.match(regex);
+              if (matches) {
+                found.push({
+                  term: term,
+                  occurrences: matches.length,
+                  contexts: extractContexts(content, term, 50)
+                });
+              }
+            });
+            
+            return found.slice(0, 10);
+          };
+
+          const extractContexts = (content, term, contextLength) => {
+            const regex = new RegExp(`.{0,${contextLength}}\\b${term}\\b.{0,${contextLength}}`, 'gi');
+            const matches = content.match(regex);
+            return matches ? matches.slice(0, 3) : [];
+          };
+
+          const identifyProceduralElements = (content, preset) => {
+            const proceduralIndicators = [
+              { pattern: /section\s+\d+[A-Z]?/gi, type: 'Statutory Reference' },
+              { pattern: /\b(must|shall|may|ought)\b/gi, type: 'Mandatory/Discretionary Language' },
+              { pattern: /\b(pursuant to|in accordance with|under)\b/gi, type: 'Procedural Compliance Indicator' },
+              { pattern: /\b(evidence|exhibit|disclosure|statement)\b/gi, type: 'Evidentiary Element' },
+              { pattern: /\b(date|time|within|before|after)\b/gi, type: 'Temporal Element' }
+            ];
+
+            return proceduralIndicators.map(indicator => ({
+              type: indicator.type,
+              matches: (content.match(indicator.pattern) || []).length,
+              examples: extractContexts(content, indicator.pattern.source.replace(/\\b|\(|\)|gi/g, ''), 40).slice(0, 2)
+            })).filter(item => item.matches > 0);
+          };
+
+          const extractLegalReferences = (content) => {
+            const references = [];
+            
+            const sectionMatches = content.match(/section\s+\d+[A-Z]?(?:\(\d+\))?(?:\([a-z]\))?/gi);
+            if (sectionMatches) {
+              references.push(...sectionMatches.map(m => ({ type: 'Section Reference', text: m })));
+            }
+            
+            const actMatches = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Act\s+\d{4}/g);
+            if (actMatches) {
+              references.push(...actMatches.map(m => ({ type: 'Act Citation', text: m })));
+            }
+            
+            return references.slice(0, 15);
+          };
+
+          const identifyPotentialIssues = (content, preset) => {
+            const issues = [];
+            
+            if (content.toLowerCase().includes('error') || content.toLowerCase().includes('incorrect')) {
+              issues.push({ severity: 'high', type: 'Acknowledged Error', description: 'Document contains reference to error or incorrect information' });
+            }
+            
+            if (!content.match(/section\s+\d+/i)) {
+              issues.push({ severity: 'medium', type: 'Missing Statutory Reference', description: 'No clear statutory references identified' });
+            }
+            
+            if (content.split('\n').length < 5) {
+              issues.push({ severity: 'low', type: 'Insufficient Detail', description: 'Document appears to lack substantive content' });
+            }
+            
+            const mustShallCount = (content.match(/\b(must|shall)\b/gi) || []).length;
+            const mayCount = (content.match(/\bmay\b/gi) || []).length;
+            
+            if (mustShallCount > 0 && mayCount > 0) {
+              issues.push({ 
+                severity: 'medium', 
+                type: 'Mixed Mandatory/Discretionary Language', 
+                description: `Document contains both mandatory (${mustShallCount}) and discretionary (${mayCount}) language - requires careful interpretation` 
+              });
+            }
+            
+            return issues;
+          };
+
+          const extractContextualMarkers = (content, preset) => {
+            return {
+              temporalMarkers: (content.match(/\b(before|after|within|during|on|at)\s+[a-zA-Z0-9\s,]+/gi) || []).slice(0, 5),
+              conditionalMarkers: (content.match(/\b(if|unless|provided that|subject to)\b[^.]+/gi) || []).slice(0, 5),
+              authorityMarkers: (content.match(/\b(officer|court|tribunal|authority|minister)\b[^.]+/gi) || []).slice(0, 5)
+            };
+          };
+
+          const performCrossReference = (phaseAResults) => {
+            const discrepancies = [];
+            const consistencies = [];
+            const omissions = [];
+            
+            const refsA = new Set(phaseAResults.fileA[0].findings.legalReferences.map(r => r.text.toLowerCase()));
+            const refsB = new Set(phaseAResults.fileB[0].findings.legalReferences.map(r => r.text.toLowerCase()));
+            
+            refsA.forEach(ref => {
+              if (refsB.has(ref)) {
+                consistencies.push({ type: 'Statutory Reference', element: ref, status: 'Present in both documents' });
+              } else {
+                omissions.push({ type: 'Statutory Reference', element: ref, status: 'Present only in File A' });
+              }
+            });
+            
+            refsB.forEach(ref => {
+              if (!refsA.has(ref)) {
+                omissions.push({ type: 'Statutory Reference', element: ref, status: 'Present only in File B' });
+              }
+            });
+            
+            const termsA = phaseAResults.fileA[0].findings.keyTermsIdentified.map(t => t.term);
+            const termsB = phaseAResults.fileB[0].findings.keyTermsIdentified.map(t => t.term);
+            
+            const significantDiscrepancy = Math.abs(termsA.length - termsB.length) > 5;
+            if (significantDiscrepancy) {
+              discrepancies.push({
+                type: 'Document Comprehensiveness',
+                description: `Significant difference in legal terminology density (File A: ${termsA.length} terms, File B: ${termsB.length} terms)`,
+                severity: 'medium'
+              });
+            }
+            
+            return {
+              discrepancies,
+              consistencies: consistencies.slice(0, 10),
+              omissions: omissions.slice(0, 10),
+              governingFramework: identifyGoverningFramework(phaseAResults),
+              complianceAssessment: assessCompliance(phaseAResults)
+            };
+          };
+
+          const identifyGoverningFramework = (phaseAResults) => {
+            const frameworks = [];
+            
+            phaseAResults.fileA.forEach(analysis => {
+              analysis.findings.legalReferences.forEach(ref => {
+                if (ref.type === 'Act Citation') {
+                  frameworks.push({
+                    statute: ref.text,
+                    source: 'File A',
+                    applicability: 'Primary governing legislation'
+                  });
+                }
+              });
+            });
+            
+            phaseAResults.fileB.forEach(analysis => {
+              analysis.findings.legalReferences.forEach(ref => {
+                if (ref.type === 'Act Citation') {
+                  frameworks.push({
+                    statute: ref.text,
+                    source: 'File B',
+                    applicability: 'Primary governing legislation'
+                  });
+                }
+              });
+            });
+            
+            return frameworks;
+          };
+
+          const assessCompliance = (phaseAResults) => {
+            const assessment = {
+              fileA: { compliant: 0, nonCompliant: 0, unclear: 0 },
+              fileB: { compliant: 0, nonCompliant: 0, unclear: 0 }
+            };
+            
+            ['fileA', 'fileB'].forEach(fileKey => {
+              phaseAResults[fileKey].forEach(analysis => {
+                const issues = analysis.findings.potentialIssues;
+                
+                if (issues.length === 0) {
+                  assessment[fileKey].compliant++;
+                } else {
+                  issues.forEach(issue => {
+                    if (issue.severity === 'high') assessment[fileKey].nonCompliant++;
+                    else assessment[fileKey].unclear++;
+                  });
+                }
+              });
+            });
+            
+            return assessment;
+          };
+
+          const performStatutoryInterpretation = (phaseAResults, phaseBResults) => {
+            return {
+              literalInterpretation: {
+                approach: 'Textualist/Literal Analysis',
+                findings: 'Analysis focuses on the plain, ordinary meaning of words as they appear in both documents. Words must be interpreted in their natural sense unless context demands otherwise.'
+              },
+              contextualInterpretation: {
+                approach: 'Contextual Analysis',
+                findings: 'Words interpreted within their statutory context - considering surrounding provisions, the scheme of the legislation, and the relationship between documents.'
+              },
+              purposiveInterpretation: {
+                approach: 'Purposive/Mischief Rule',
+                findings: 'Interpretation seeks to advance the legislative purpose and remedy the mischief the statute was designed to address. Requires consideration of extrinsic materials where ambiguity exists.'
+              },
+              harmonization: {
+                approach: 'Harmonious Construction',
+                findings: 'Provisions must be read together to give effect to all parts. Inconsistencies between File A and File B require reconciliation using established interpretative principles.'
+              },
+              extrinsicAids: {
+                availableAids: [
+                  'Second reading speeches (for Commonwealth legislation)',
+                  'Explanatory memoranda',
+                  'Parliamentary debates (Hansard)',
+                  'Prior judicial interpretation',
+                  'Legislative history and amendments'
+                ],
+                application: 'Extrinsic materials may be consulted to confirm meaning or resolve ambiguity, but cannot override clear statutory language.'
+              },
+              interpretativePrinciples: [
+                {
+                  principle: 'Acts Interpretation Act 1901 (Cth) s 15AA',
+                  application: 'Interpretation that promotes the purpose of the legislation is preferred'
+                },
+                {
+                  principle: 'Generalia specialibus non derogant',
+                  application: 'Specific provisions prevail over general provisions'
+                },
+                {
+                  principle: 'Expressio unius est exclusio alterius',
+                  application: 'Express mention of one thing excludes others'
+                },
+                {
+                  principle: 'Noscitur a sociis',
+                  application: 'Words are known by their associates - interpret terms by their context'
+                }
+              ],
+              resolutionOfAmbiguity: generateAmbiguityResolution(phaseBResults)
+            };
+          };
+
+          const generateAmbiguityResolution = (phaseBResults) => {
+            const resolutions = [];
+            
+            phaseBResults.discrepancies.forEach(discrepancy => {
+              resolutions.push({
+                ambiguity: discrepancy.description,
+                resolutionMethod: 'Apply modern purposive approach: examine text, context, and legislative purpose',
+                recommendation: 'Seek extrinsic materials if ambiguity persists after textual and contextual analysis'
+              });
+            });
+            
+            if (resolutions.length === 0) {
+              resolutions.push({
+                ambiguity: 'No significant ambiguities identified',
+                resolutionMethod: 'Plain meaning approach sufficient',
+                recommendation: 'Proceed with literal interpretation absent contrary indicators'
+              });
+            }
+            
+            return resolutions;
+          };
+
+          const generateExecutiveSummary = (phaseA, phaseB, phaseC) => {
+            const totalIssuesA = phaseA.fileA.reduce((sum, analysis) => sum + analysis.findings.potentialIssues.length, 0);
+            const totalIssuesB = phaseA.fileB.reduce((sum, analysis) => sum + analysis.findings.potentialIssues.length, 0);
+            
+            return {
+              overallAssessment: totalIssuesA + totalIssuesB === 0 ? 'No Critical Issues Identified' : 'Issues Requiring Attention Identified',
+              criticalFindings: [
+                `File A: ${totalIssuesA} potential issues identified across ${interpretivePresets.length} analytical presets`,
+                `File B: ${totalIssuesB} potential issues identified across ${interpretivePresets.length} analytical presets`,
+                `Cross-reference analysis: ${phaseB.discrepancies.length} discrepancies, ${phaseB.omissions.length} omissions`,
+                `Governing framework: ${phaseB.governingFramework.length} statutory instruments identified`
+              ],
+              recommendations: [
+                'Review all identified discrepancies for potential procedural defects',
+                'Verify compliance with mandatory statutory requirements',
+                'Consider extrinsic materials for ambiguity resolution where necessary',
+                'Cross-check all statutory references against current legislation',
+                'Ensure harmonious interpretation between documents where possible'
+              ],
+              nextSteps: [
+                'Detailed review of high-severity issues',
+                'Consultation of relevant case law for interpretative guidance',
+                'Preparation of submissions addressing identified defects',
+                'Verification of all factual assertions against evidence'
+              ]
+            };
+          };
+
+          const toggleSection = (sectionId) => {
+            setExpandedSections(prev => ({
+              ...prev,
+              [sectionId]: !prev[sectionId]
+            }));
+          };
+
+          const exportReport = () => {
+            if (!analysisResults) return;
+            
+            const report = {
+              timestamp: new Date().toISOString(),
+              files: {
+                fileA: files.fileA?.name,
+                fileB: files.fileB?.name
+              },
+              analysis: analysisResults
+            };
+            
+            const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `forensic-analysis-${Date.now()}.json`;
+            a.click();
+          };
+
+          const FileUploadZone = ({ fileKey, label }) => (
+            <div className="bg-white rounded-lg shadow-md p-6 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors">
+              <div className="text-center">
+                <Icon name="FileText" className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-semibold mb-2">{label}</h3>
+                
+                {!files[fileKey] ? (
+                  <>
+                    <div
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, fileKey)}
+                      className="mb-4 p-8 bg-gray-50 rounded-lg"
+                    >
+                      <p className="text-sm text-gray-600 mb-2">Drag and drop file here</p>
+                      <p className="text-xs text-gray-500">or</p>
+                    </div>
+                    
+                    <button
+                      onClick={() => fileKey === 'fileA' ? fileInputA.current.click() : fileInputB.current.click()}
+                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mb-2 w-full flex items-center justify-center"
+                    >
+                      <Icon name="Upload" className="inline-block mr-2 h-4 w-4" />
+                      Choose File
+                    </button>
+                    
+                    <div className="mt-4">
+                      <input
+                        type="text"
+                        placeholder="Or paste URL to document"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        onKeyPress={(e) => {
+                          if (e.key === 'Enter' && e.target.value) {
+                            handleUrlUpload(e.target.value, fileKey);
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    <input
+                      type="file"
+                      ref={fileKey === 'fileA' ? fileInputA : fileInputB}
+                      onChange={(e) => handleFileUpload(e.target.files[0], fileKey)}
+                      className="hidden"
+                      accept=".txt,.doc,.docx,.pdf"
+                    />
+                  </>
+                ) : (
+                  <div className="bg-green-50 p-4 rounded-lg">
+                    <Icon name="CheckCircle" className="inline-block text-green-600 mr-2" />
+                    <span className="text-sm font-medium text-green-800">{files[fileKey].name}</span>
+                    <button
+                      onClick={() => {
+                        setFiles(prev => ({ ...prev, [fileKey]: null }));
+                        setFileContents(prev => ({ ...prev, [fileKey]: '' }));
+                      }}
+                      className="ml-4 text-red-600 text-sm hover:text-red-800"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+
+          const AnalysisSection = ({ title, children, sectionId }) => {
+            const isExpanded = expandedSections[sectionId];
+            
+            return (
+              <div className="bg-white rounded-lg shadow-md mb-4">
+                <button
+                  onClick={() => toggleSection(sectionId)}
+                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                >
+                  <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
+                  {isExpanded ? <Icon name="ChevronDown" className="h-5 w-5" /> : <Icon name="ChevronRight" className="h-5 w-5" />}
+                </button>
+                
+                {isExpanded && (
+                  <div className="px-6 pb-6 border-t border-gray-200">
+                    {children}
+                  </div>
+                )}
+              </div>
+            );
+          };
+
+          return (
+            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-6">
+              <div className="max-w-7xl mx-auto">
+                <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
+                  <div className="flex items-center justify-between mb-6">
+                    <div>
+                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                        Forensic Legal Document Analyzer
+                      </h1>
+                      <p className="text-gray-600">
+                        Multi-Layered Interpretive Analysis System for Evidentiary Documents
+                      </p>
+                    </div>
+                    <Icon name="Eye" className="h-12 w-12 text-blue-600" />
+                  </div>
+
+                  <div className="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6">
+                    <h3 className="font-semibold text-blue-900 mb-2">System Capabilities:</h3>
+                    <ul className="text-sm text-blue-800 space-y-1">
+                      <li>• Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks</li>
+                      <li>• Phase B: Statutory framework identification and cross-reference analysis</li>
+                      <li>• Phase C: Comprehensive statutory interpretation applying modern purposive approach</li>
+                      <li>• Identifies legal flaws, factual inconsistencies, and procedural defects</li>
+                    </ul>
+                  </div>
+
+                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                    <FileUploadZone fileKey="fileA" label="Document A (Primary Exhibit)" />
+                    <FileUploadZone fileKey="fileB" label="Comparative Exhibit (Document B)" />
+                  </div>
+
+                  <button
+                    onClick={simulateAnalysis}
+                    disabled={!files.fileA || !files.fileB || analysisState === 'analyzing'}
+                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center justify-center"
+                  >
+                    {analysisState === 'analyzing' ? (
+                      <>
+                        <Icon name="Loader" className="inline-block mr-2 h-5 w-5 animate-spin" />
+                        {currentPhase}
+                      </>
+                    ) : (
+                      <>
+                        <Icon name="AlertCircle" className="inline-block mr-2 h-5 w-5" />
+                        Commence Forensic Analysis
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                {analysisResults && (
+                  <div className="space-y-4">
+                    <div className="bg-white rounded-xl shadow-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h2 className="text-2xl font-bold text-gray-900">Analysis Report</h2>
+                        <button
+                          onClick={exportReport}
+                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                        >
+                          <Icon name="Download" className="mr-2 h-4 w-4" />
+                          Export Report
+                        </button>
+                      </div>
+
+                      <div className="bg-yellow-50 border-l-4 border-yellow-600 p-4 mb-6">
+                        <h3 className="font-semibold text-yellow-900 mb-2">Executive Summary</h3>
+                        <p className="text-sm text-yellow-800 mb-3">
+                          <strong>Overall Assessment:</strong> {analysisResults.summary.overallAssessment}
+                        </p>
+                        <div className="text-sm text-yellow-800">
+                          <strong>Critical Findings:</strong>
+                          <ul className="mt-2 space-y-1">
+                            {analysisResults.summary.criticalFindings.map((finding, idx) => (
+                              <li key={idx}>• {finding}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+
+                    <AnalysisSection title="Phase A: Multi-Preset Forensic Examination" sectionId="phaseA">
+                      <div className="space-y-6 mt-4">
+                        <div>
+                          <h4 className="font-semibold text-lg mb-3">Document A Analysis</h4>
+                          {analysisResults.phaseA.fileA.map((analysis, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg mb-3">
+                              <h5 className="font-medium text-blue-900 mb-2">{analysis.preset}</h5>
+                              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-gray-600"><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
+                                  <p className="text-gray-600"><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
+                                  <p className="text-gray-600"><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-600"><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
+                                  <p className="text-gray-600"><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
+                                  <p className="text-gray-600"><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
+                                </div>
+                              </div>
+                              {analysis.findings.potentialIssues.length > 0 && (
+                                <div className="mt-3 p-3 bg-red-50 rounded border-l-4 border-red-600">
+                                  <strong className="text-red-900">Issues Identified:</strong>
+                                  <ul className="mt-2 text-sm text-red-800">
+                                    {analysis.findings.potentialIssues.map((issue, i) => (
+                                      <li key={i} className="mb-1">
+                                        • [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+
+                        <div>
+                          <h4 className="font-semibold text-lg mb-3">Document B Analysis</h4>
+                          {analysisResults.phaseA.fileB.map((analysis, idx) => (
+                            <div key={idx} className="bg-gray-50 p-4 rounded-lg mb-3">
+                              <h5 className="font-medium text-blue-900 mb-2">{analysis.preset}</h5>
+                              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                                <div>
+                                  <p className="text-gray-600"><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
+                                  <p className="text-gray-600"><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
+                                  <p className="text-gray-600"><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
+                                </div>
+                                <div>
+                                  <p className="text-gray-600"><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
+                                  <p className="text-gray-600"><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
+                                  <p className="text-gray-600"><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
+                                </div>
+                              </div>
+                              {analysis.findings.potentialIssues.length > 0 && (
+                                <div className="mt-3 p-3 bg-red-50 rounded border-l-4 border-red-600">
+                                  <strong className="text-red-900">Issues Identified:</strong>
+                                  <ul className="mt-2 text-sm text-red-800">
+                                    {analysis.findings.potentialIssues.map((issue, i) => (
+                                      <li key={i} className="mb-1">
+                                        • [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </AnalysisSection>
+
+                    <AnalysisSection title="Phase B: Statutory Framework & Cross-Reference Analysis" sectionId="phaseB">
+                      <div className="space-y-6 mt-4">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-900 mb-3">Governing Statutory Framework</h4>
+                          {analysisResults.phaseB.governingFramework.length > 0 ? (
+                            <div className="space-y-2">
+                              {analysisResults.phaseB.governingFramework.map((framework, idx) => (
+                                <div key={idx} className="bg-white p-3 rounded text-sm">
+                                  <p className="font-medium text-gray-900">{framework.statute}</p>
+                                  <p className="text-gray-600">Source: {framework.source} | {framework.applicability}</p>
+                                </div>
+                              ))}
+                            </div>
+                          ) : (
+                            <p className="text-sm text-gray-600">No explicit statutory framework identified in documents</p>
+                          )}
+                        </div>
+
+                        {analysisResults.phaseB.discrepancies.length > 0 && (
+                          <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-600">
+                            <h4 className="font-semibold text-red-900 mb-3">Discrepancies Identified</h4>
+                            <ul className="space-y-2">
+                              {analysisResults.phaseB.discrepancies.map((disc, idx) => (
+                                <li key={idx} className="text-sm text-red-800">
+                                  <strong>[{disc.severity?.toUpperCase()}]</strong> {disc.type}: {disc.description}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {analysisResults.phaseB.omissions.length > 0 && (
+                          <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-600">
+                            <h4 className="font-semibold text-yellow-900 mb-3">Omissions Detected</h4>
+                            <ul className="space-y-2">
+                              {analysisResults.phaseB.omissions.slice(0, 10).map((omission, idx) => (
+                                <li key={idx} className="text-sm text-yellow-800">
+                                  {omission.type}: <strong>{omission.element}</strong> - {omission.status}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {analysisResults.phaseB.consistencies.length > 0 && (
+                          <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
+                            <h4 className="font-semibold text-green-900 mb-3">Consistencies Confirmed</h4>
+                            <ul className="space-y-2">
+                              {analysisResults.phaseB.consistencies.map((cons, idx) => (
+                                <li key={idx} className="text-sm text-green-800">
+                                  {cons.type}: <strong>{cons.element}</strong> - {cons.status}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </div>
+                    </AnalysisSection>
+
+                    <AnalysisSection title="Phase C: Statutory Interpretation & Legislative Purpose" sectionId="phaseC">
+                      <div className="space-y-6 mt-4">
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-3">Interpretive Approaches Applied</h4>
+                          
+                          <div className="space-y-4">
+                            <div className="bg-white p-4 rounded border-l-4 border-blue-600">
+                              <h5 className="font-medium text-blue-900 mb-2">{analysisResults.phaseC.literalInterpretation.approach}</h5>
+                              <p className="text-sm text-gray-700">{analysisResults.phaseC.literalInterpretation.findings}</p>
+                            </div>
+
+                            <div className="bg-white p-4 rounded border-l-4 border-purple-600">
+                              <h5 className="font-medium text-purple-900 mb-2">{analysisResults.phaseC.contextualInterpretation.approach}</h5>
+                              <p className="text-sm text-gray-700">{analysisResults.phaseC.contextualInterpretation.findings}</p>
+                            </div>
+
+                            <div className="bg-white p-4 rounded border-l-4 border-green-600">
+                              <h5 className="font-medium text-green-900 mb-2">{analysisResults.phaseC.purposiveInterpretation.approach}</h5>
+                              <p className="text-sm text-gray-700">{analysisResults.phaseC.purposiveInterpretation.findings}</p>
+                            </div>
+
+                            <div className="bg-white p-4 rounded border-l-4 border-orange-600">
+                              <h5 className="font-medium text-orange-900 mb-2">{analysisResults.phaseC.harmonization.approach}</h5>
+                              <p className="text-sm text-gray-700">{analysisResults.phaseC.harmonization.findings}</p>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-900 mb-3">Interpretive Principles Applied</h4>
+                          <div className="space-y-2">
+                            {analysisResults.phaseC.interpretativePrinciples.map((principle, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded text-sm">
+                                <p className="font-medium text-gray-900">{principle.principle}</p>
+                                <p className="text-gray-600 mt-1">{principle.application}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="bg-purple-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-purple-900 mb-3">Extrinsic Aids Available</h4>
+                          <p className="text-sm text-purple-800 mb-2">{analysisResults.phaseC.extrinsicAids.application}</p>
+                          <ul className="space-y-1 text-sm text-purple-800">
+                            {analysisResults.phaseC.extrinsicAids.availableAids.map((aid, idx) => (
+                              <li key={idx}>• {aid}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="bg-gray-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-gray-900 mb-3">Ambiguity Resolution</h4>
+                          <div className="space-y-3">
+                            {analysisResults.phaseC.resolutionOfAmbiguity.map((resolution, idx) => (
+                              <div key={idx} className="bg-white p-3 rounded text-sm border-l-4 border-gray-400">
+                                <p className="font-medium text-gray-900 mb-1">Ambiguity: {resolution.ambiguity}</p>
+                                <p className="text-gray-700 mb-1"><strong>Method:</strong> {resolution.resolutionMethod}</p>
+                                <p className="text-gray-700"><strong>Recommendation:</strong> {resolution.recommendation}</p>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </AnalysisSection>
+
+                    <AnalysisSection title="Recommendations & Next Steps" sectionId="recommendations">
+                      <div className="space-y-4 mt-4">
+                        <div className="bg-blue-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-blue-900 mb-3">Strategic Recommendations</h4>
+                          <ul className="space-y-2 text-sm text-blue-800">
+                            {analysisResults.summary.recommendations.map((rec, idx) => (
+                              <li key={idx}>• {rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+
+                        <div className="bg-green-50 p-4 rounded-lg">
+                          <h4 className="font-semibold text-green-900 mb-3">Proposed Next Steps</h4>
+                          <ol className="space-y-2 text-sm text-green-800 list-decimal list-inside">
+                            {analysisResults.summary.nextSteps.map((step, idx) => (
+                              <li key={idx}>{step}</li>
+                            ))}
+                          </ol>
+                        </div>
+                      </div>
+                    </AnalysisSection>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<ForensicLegalAnalyzer />);
+    </script>
+</body>
+</html>
