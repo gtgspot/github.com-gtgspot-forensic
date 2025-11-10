@@ -1,0 +1,40 @@
+#!/bin/bash
+
+# Get the directory of this script (inside the .app bundle)
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+RESOURCES_DIR="$DIR/../Resources"
+
+# Check if Python 3 is available
+if ! command -v python3 &> /dev/null; then
+    osascript -e 'display dialog "Python 3 is required to run Forensic Legal Analyzer.\n\nPlease install Python 3 from python.org" buttons {"OK"} default button 1 with icon stop'
+    exit 1
+fi
+
+# Check if required Python packages are installed, if not install them
+python3 -c "import http.server" 2>/dev/null || {
+    osascript -e 'display dialog "Installing required components...\n\nThis may take a moment." buttons {"OK"} default button 1 with icon note' &
+}
+
+# Navigate to Resources directory
+cd "$RESOURCES_DIR"
+
+# Start the local server
+echo "Starting Forensic Legal Analyzer..."
+python3 -m http.server 8765 > /dev/null 2>&1 &
+SERVER_PID=$!
+
+# Wait a moment for server to start
+sleep 2
+
+# Open the application in default browser
+open "http://localhost:8765/index.html"
+
+# Display notification
+osascript -e 'display notification "Forensic Legal Analyzer is now running on http://localhost:8765" with title "Application Started"'
+
+# Keep the server running until the app is quit
+echo "Server running on http://localhost:8765"
+echo "Press Ctrl+C to stop the server"
+
+# Wait for the server process
+wait $SERVER_PID
