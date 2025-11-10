@@ -188,13 +188,16 @@
             const words = content.split(/\s+/).filter(w => w.length > 0);
             const lines = content.split('\n').filter(l => l.trim().length > 0);
 
+            // Extract legal references first so we can pass them to issue identification
+            const legalReferences = extractLegalReferences(content);
+
             return {
               wordCount: words.length,
               lineCount: lines.length,
               keyTermsIdentified: extractKeyTerms(content, preset),
               proceduralElements: identifyProceduralElements(content, preset),
-              legalReferences: extractLegalReferences(content),
-              potentialIssues: identifyPotentialIssues(content, preset),
+              legalReferences: legalReferences,
+              potentialIssues: identifyPotentialIssues(content, preset, legalReferences),
               contextualMarkers: extractContextualMarkers(content, preset)
             };
           };
@@ -260,33 +263,299 @@
             return references.slice(0, 15);
           };
 
-          const identifyPotentialIssues = (content, preset) => {
+          // Enhanced issue identification with statutory compliance matrix
+          const identifyPotentialIssues = (content, preset, legalReferences = []) => {
             const issues = [];
-            
-            if (content.toLowerCase().includes('error') || content.toLowerCase().includes('incorrect')) {
-              issues.push({ severity: 'high', type: 'Acknowledged Error', description: 'Document contains reference to error or incorrect information' });
-            }
-            
-            if (!content.match(/section\s+\d+/i)) {
-              issues.push({ severity: 'medium', type: 'Missing Statutory Reference', description: 'No clear statutory references identified' });
-            }
-            
-            if (content.split('\n').length < 5) {
-              issues.push({ severity: 'low', type: 'Insufficient Detail', description: 'Document appears to lack substantive content' });
-            }
-            
-            const mustShallCount = (content.match(/\b(must|shall)\b/gi) || []).length;
-            const mayCount = (content.match(/\bmay\b/gi) || []).length;
-            
-            if (mustShallCount > 0 && mayCount > 0) {
-              issues.push({ 
-                severity: 'medium', 
-                type: 'Mixed Mandatory/Discretionary Language', 
-                description: `Document contains both mandatory (${mustShallCount}) and discretionary (${mayCount}) language - requires careful interpretation` 
+
+            // Extract statutory framework for this document
+            const primaryActs = legalReferences.filter(r => r.type === 'Act Citation');
+            const sectionRefs = legalReferences.filter(r => r.type === 'Section Reference');
+
+            // Category 1: CRITICAL STATUTORY DEFECTS (High Severity)
+
+            // 1.1 Acknowledged Errors or Corrections
+            const errorPatterns = /\b(error|incorrect|mistake|erroneously|wrongly|inadvertent|oversight)\b/gi;
+            const errorMatches = content.match(errorPatterns);
+            if (errorMatches && errorMatches.length > 0) {
+              issues.push({
+                severity: 'critical',
+                type: 'Acknowledged Defect',
+                category: 'Statutory Compliance',
+                description: `Document contains ${errorMatches.length} reference(s) to errors or incorrect information`,
+                evidence: errorMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'May invalidate reliance on document under s15AA Acts Interpretation Act',
+                weight: 10
               });
             }
-            
-            return issues;
+
+            // 1.2 Jurisdiction Issues
+            const jurisdictionPatterns = /\b(jurisdiction|ultra vires|beyond power|lack.*authority|void|invalid)\b/gi;
+            const jurisdictionMatches = content.match(jurisdictionPatterns);
+            if (jurisdictionMatches && jurisdictionMatches.length > 2) {
+              issues.push({
+                severity: 'critical',
+                type: 'Jurisdictional Defect',
+                category: 'Statutory Compliance',
+                description: 'Document raises potential jurisdictional or validity concerns',
+                evidence: jurisdictionMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'Jurisdictional defects may render decision void ab initio',
+                weight: 10
+              });
+            }
+
+            // 1.3 Procedural Fairness Violations
+            const fairnessPatterns = /\b(natural justice|procedural fairness|bias|denied.*opportunity|no.*hearing|unfair)\b/gi;
+            const fairnessMatches = content.match(fairnessPatterns);
+            if (fairnessMatches && fairnessMatches.length > 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Procedural Fairness Issue',
+                category: 'Statutory Compliance',
+                description: 'Document indicates potential breach of procedural fairness',
+                evidence: fairnessMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'Breach of natural justice may constitute jurisdictional error',
+                weight: 9
+              });
+            }
+
+            // Category 2: STATUTORY REFERENCE DEFECTS (High-Medium Severity)
+
+            // 2.1 Missing Primary Legislation Reference
+            if (primaryActs.length === 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Missing Primary Legislation',
+                category: 'Statutory Framework',
+                description: 'No primary Act citations identified - cannot determine governing legislative framework',
+                statutoryImpact: 'Unable to assess compliance with enabling legislation',
+                weight: 8
+              });
+            }
+
+            // 2.2 Missing Section References
+            if (sectionRefs.length === 0 && content.length > 500) {
+              issues.push({
+                severity: 'medium',
+                type: 'Missing Specific Statutory Provisions',
+                category: 'Statutory Framework',
+                description: 'No specific section references identified despite substantive content',
+                statutoryImpact: 'Lack of specificity may indicate insufficient statutory basis',
+                weight: 6
+              });
+            }
+
+            // 2.3 Inconsistent Citation Format
+            const inconsistentCitations = checkCitationConsistency(content);
+            if (inconsistentCitations.length > 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Inconsistent Citation Format',
+                category: 'Statutory Framework',
+                description: 'Mixed or inconsistent citation formats detected',
+                evidence: inconsistentCitations.join('; '),
+                weight: 5
+              });
+            }
+
+            // Category 3: SUBORDINATE INSTRUMENT ISSUES (Medium Severity)
+
+            // 3.1 Identify subordinate instruments
+            const subordinateInstruments = identifySubordinateInstruments(content);
+            if (subordinateInstruments.regulations.length > 0 && primaryActs.length === 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Orphaned Subordinate Instrument',
+                category: 'Legislative Hierarchy',
+                description: `${subordinateInstruments.regulations.length} subordinate instrument(s) cited without parent Act`,
+                evidence: subordinateInstruments.regulations.slice(0, 3).join(', '),
+                statutoryImpact: 'Subordinate instruments must be read subject to enabling Act',
+                weight: 7
+              });
+            }
+
+            // 3.2 Regulation vs Act conflict indicators
+            const conflictPatterns = /\b(contrary to|inconsistent with|conflict|override|supersede)\b/gi;
+            const conflictMatches = content.match(conflictPatterns);
+            if (conflictMatches && subordinateInstruments.regulations.length > 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Potential Instrument Conflict',
+                category: 'Legislative Hierarchy',
+                description: 'Potential conflict between subordinate and primary legislation',
+                evidence: conflictMatches.slice(0, 2).join(', '),
+                statutoryImpact: 'Subordinate instruments cannot override primary legislation',
+                weight: 8
+              });
+            }
+
+            // Category 4: MANDATORY VS DISCRETIONARY LANGUAGE (Medium-Low Severity)
+
+            const mustShallCount = (content.match(/\b(must|shall|required)\b/gi) || []).length;
+            const mayCount = (content.match(/\b(may|discretion|permitted)\b/gi) || []).length;
+            const couldCount = (content.match(/\b(could|might|possibly)\b/gi) || []).length;
+
+            // 4.1 Ambiguous mandatory obligations
+            if (mustShallCount > 0 && mayCount > 0) {
+              const ratio = mayCount / mustShallCount;
+              const severity = ratio > 0.5 ? 'medium' : 'low';
+              issues.push({
+                severity: severity,
+                type: 'Mixed Mandatory/Discretionary Language',
+                category: 'Interpretive Clarity',
+                description: `Document contains both mandatory (${mustShallCount}) and discretionary (${mayCount}) obligations`,
+                statutoryImpact: 'Mandatory obligations interpreted according to "must" vs "may" distinction',
+                weight: ratio > 0.5 ? 5 : 3
+              });
+            }
+
+            // 4.2 Weak or vague language in statutory context
+            if (couldCount > mustShallCount && mustShallCount > 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Vague Language in Statutory Context',
+                category: 'Interpretive Clarity',
+                description: `Predominance of uncertain language (${couldCount} instances) over mandatory obligations`,
+                weight: 4
+              });
+            }
+
+            // Category 5: EVIDENTIARY & PROCEDURAL SUFFICIENCY (Medium-Low Severity)
+
+            // 5.1 Insufficient factual detail
+            const lines = content.split('\n').filter(l => l.trim().length > 0);
+            const words = content.split(/\s+/).length;
+            if (lines.length < 5 && words < 100) {
+              issues.push({
+                severity: 'medium',
+                type: 'Insufficient Substantive Content',
+                category: 'Procedural Sufficiency',
+                description: `Document appears to lack substantive detail (${lines.length} lines, ${words} words)`,
+                statutoryImpact: 'Inadequate reasoning may constitute failure to discharge statutory duty',
+                weight: 6
+              });
+            }
+
+            // 5.2 Missing temporal references
+            const temporalMarkers = content.match(/\b(\d{1,2}\/\d{1,2}\/\d{2,4}|\d{4}-\d{2}-\d{2}|date|time|deadline|by|before|after|within \d+)\b/gi);
+            if (!temporalMarkers && content.length > 500) {
+              issues.push({
+                severity: 'low',
+                type: 'Missing Temporal References',
+                category: 'Procedural Sufficiency',
+                description: 'No specific dates or timeframes identified in substantive document',
+                weight: 3
+              });
+            }
+
+            // 5.3 Evidence markers
+            const evidenceMarkers = content.match(/\b(evidence|exhibit|annexure|attachment|schedule|appendix)\b/gi);
+            if (evidenceMarkers && evidenceMarkers.length > 3) {
+              const evidenceVerification = content.match(/\b(refer|attached|enclosed|provided)\b/gi);
+              if (!evidenceVerification || evidenceVerification.length < evidenceMarkers.length) {
+                issues.push({
+                  severity: 'medium',
+                  type: 'Potential Missing Evidence',
+                  category: 'Procedural Sufficiency',
+                  description: `${evidenceMarkers.length} evidence references but insufficient verification of attachment`,
+                  weight: 5
+                });
+              }
+            }
+
+            // Category 6: INTERPRETIVE PRINCIPLES (Low-Medium Severity)
+
+            // 6.1 Specific vs General provisions (generalia specialibus non derogant)
+            const generalTerms = content.match(/\b(general|overall|broadly|in general|generally)\b/gi);
+            const specificTerms = content.match(/\b(specific|specifically|particular|precisely|expressly)\b/gi);
+            if (generalTerms && specificTerms && generalTerms.length > specificTerms.length * 2) {
+              issues.push({
+                severity: 'low',
+                type: 'Predominance of General over Specific',
+                category: 'Interpretive Principles',
+                description: 'Document relies heavily on general rather than specific provisions',
+                statutoryImpact: 'Principle: Specific provisions prevail over general (generalia specialibus non derogant)',
+                weight: 4
+              });
+            }
+
+            // 6.2 Express inclusions/exclusions (expressio unius est exclusio alterius)
+            const inclusionTerms = content.match(/\b(includes?|including|such as|means)\b/gi);
+            const exclusionTerms = content.match(/\b(excludes?|excluding|except|other than|but not)\b/gi);
+            if (inclusionTerms && !exclusionTerms && inclusionTerms.length > 3) {
+              issues.push({
+                severity: 'low',
+                type: 'Express Inclusions without Exclusions',
+                category: 'Interpretive Principles',
+                description: 'Multiple express inclusions may imply exclusion of unstated items',
+                statutoryImpact: 'Principle: Express mention excludes unstated items (expressio unius)',
+                weight: 3
+              });
+            }
+
+            // Calculate overall severity score
+            const totalWeight = issues.reduce((sum, issue) => sum + (issue.weight || 0), 0);
+
+            // Sort issues by weight (highest first)
+            issues.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+
+            // Add metadata
+            issues.forEach((issue, index) => {
+              issue.id = `ISSUE-${index + 1}`;
+              issue.governingFramework = primaryActs.length > 0 ? primaryActs[0].text : 'Unspecified';
+            });
+
+            return {
+              issues: issues,
+              summary: {
+                totalIssues: issues.length,
+                critical: issues.filter(i => i.severity === 'critical').length,
+                high: issues.filter(i => i.severity === 'high').length,
+                medium: issues.filter(i => i.severity === 'medium').length,
+                low: issues.filter(i => i.severity === 'low').length,
+                overallRiskScore: totalWeight,
+                riskLevel: totalWeight > 40 ? 'CRITICAL' : totalWeight > 25 ? 'HIGH' : totalWeight > 15 ? 'MEDIUM' : 'LOW'
+              }
+            };
+          };
+
+          // Helper function: Check citation consistency
+          const checkCitationConsistency = (content) => {
+            const inconsistencies = [];
+
+            // Check for mixed section reference styles
+            const sectionStyle1 = content.match(/section \d+/gi);
+            const sectionStyle2 = content.match(/s\.\d+/gi);
+            const sectionStyle3 = content.match(/sec\. \d+/gi);
+
+            const styles = [sectionStyle1, sectionStyle2, sectionStyle3].filter(s => s && s.length > 0);
+            if (styles.length > 1) {
+              inconsistencies.push('Mixed section reference formats (e.g., "section 5", "s.5", "sec. 5")');
+            }
+
+            // Check for mixed subsection styles
+            const subsectionParen = content.match(/\(\d+\)/g);
+            const subsectionBracket = content.match(/\[\d+\]/g);
+            if (subsectionParen && subsectionBracket) {
+              inconsistencies.push('Mixed subsection formats (parentheses vs brackets)');
+            }
+
+            return inconsistencies;
+          };
+
+          // Helper function: Identify subordinate instruments
+          const identifySubordinateInstruments = (content) => {
+            const regulations = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Regulations?\s+\d{4}/g) || [];
+            const rules = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Rules\s+\d{4}/g) || [];
+            const orders = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Orders?\s+\d{4}/g) || [];
+            const instruments = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Instrument\s+\d{4}/g) || [];
+
+            return {
+              regulations: [...new Set(regulations)],
+              rules: [...new Set(rules)],
+              orders: [...new Set(orders)],
+              instruments: [...new Set(instruments)],
+              total: regulations.length + rules.length + orders.length + instruments.length
+            };
           };
 
           const extractContextualMarkers = (content, preset) => {
@@ -372,25 +641,85 @@
 
           const assessCompliance = (phaseAResults) => {
             const assessment = {
-              fileA: { compliant: 0, nonCompliant: 0, unclear: 0 },
-              fileB: { compliant: 0, nonCompliant: 0, unclear: 0 }
+              fileA: {
+                compliant: 0,
+                nonCompliant: 0,
+                unclear: 0,
+                criticalIssues: 0,
+                highIssues: 0,
+                mediumIssues: 0,
+                lowIssues: 0,
+                totalWeight: 0,
+                riskLevel: 'LOW'
+              },
+              fileB: {
+                compliant: 0,
+                nonCompliant: 0,
+                unclear: 0,
+                criticalIssues: 0,
+                highIssues: 0,
+                mediumIssues: 0,
+                lowIssues: 0,
+                totalWeight: 0,
+                riskLevel: 'LOW'
+              }
             };
-            
+
             ['fileA', 'fileB'].forEach(fileKey => {
+              let fileRiskScore = 0;
+
               phaseAResults[fileKey].forEach(analysis => {
-                const issues = analysis.findings.potentialIssues;
-                
-                if (issues.length === 0) {
-                  assessment[fileKey].compliant++;
+                const potentialIssues = analysis.findings.potentialIssues;
+
+                // Handle both old format (array) and new format (object with issues/summary)
+                const issues = potentialIssues.issues || potentialIssues;
+                const summary = potentialIssues.summary;
+
+                if (summary) {
+                  // New enhanced format
+                  assessment[fileKey].criticalIssues += summary.critical || 0;
+                  assessment[fileKey].highIssues += summary.high || 0;
+                  assessment[fileKey].mediumIssues += summary.medium || 0;
+                  assessment[fileKey].lowIssues += summary.low || 0;
+                  fileRiskScore += summary.overallRiskScore || 0;
+
+                  if (summary.critical > 0 || summary.high > 0) {
+                    assessment[fileKey].nonCompliant++;
+                  } else if (summary.medium > 0) {
+                    assessment[fileKey].unclear++;
+                  } else {
+                    assessment[fileKey].compliant++;
+                  }
                 } else {
-                  issues.forEach(issue => {
-                    if (issue.severity === 'high') assessment[fileKey].nonCompliant++;
-                    else assessment[fileKey].unclear++;
-                  });
+                  // Old simple format (backward compatibility)
+                  if (issues.length === 0) {
+                    assessment[fileKey].compliant++;
+                  } else {
+                    issues.forEach(issue => {
+                      if (issue.severity === 'critical') {
+                        assessment[fileKey].criticalIssues++;
+                        assessment[fileKey].nonCompliant++;
+                      } else if (issue.severity === 'high') {
+                        assessment[fileKey].highIssues++;
+                        assessment[fileKey].nonCompliant++;
+                      } else if (issue.severity === 'medium') {
+                        assessment[fileKey].mediumIssues++;
+                        assessment[fileKey].unclear++;
+                      } else {
+                        assessment[fileKey].lowIssues++;
+                        assessment[fileKey].unclear++;
+                      }
+                    });
+                  }
                 }
               });
+
+              assessment[fileKey].totalWeight = fileRiskScore;
+              assessment[fileKey].riskLevel = fileRiskScore > 40 ? 'CRITICAL' :
+                                               fileRiskScore > 25 ? 'HIGH' :
+                                               fileRiskScore > 15 ? 'MEDIUM' : 'LOW';
             });
-            
+
             return assessment;
           };
 
