@@ -10,6 +10,11 @@
     <!-- OCR and PDF Processing Libraries -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Export Libraries -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/docx/7.8.2/docx.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <script>
       // Configure PDF.js worker
       if (typeof pdfjsLib !== 'undefined') {
@@ -96,6 +101,42 @@
             --z-dropdown: 1000;
             --z-modal: 2000;
             --z-tooltip: 3000;
+
+            /* Theme Variables */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f9fafb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        /* Dark Mode */
+        [data-theme="dark"] {
+            --color-primary: #3b82f6;
+            --color-primary-dark: #2563eb;
+            --color-primary-light: #1e3a8a;
+
+            --color-gray-50: #1f2937;
+            --color-gray-100: #374151;
+            --color-gray-200: #4b5563;
+            --color-gray-300: #6b7280;
+            --color-gray-400: #9ca3af;
+            --color-gray-500: #d1d5db;
+            --color-gray-600: #e5e7eb;
+            --color-gray-700: #f3f4f6;
+            --color-gray-800: #f9fafb;
+            --color-gray-900: #ffffff;
+
+            --bg-primary: #111827;
+            --bg-secondary: #1f2937;
+            --text-primary: #ffffff;
+            --text-secondary: #d1d5db;
+            --border-color: #374151;
+
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.4);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.5);
         }
 
         * {
@@ -109,7 +150,9 @@
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
             font-size: var(--font-size-base);
-            color: var(--color-gray-900);
+            color: var(--text-primary);
+            background: var(--bg-primary);
+            transition: background-color var(--transition-base), color var(--transition-base);
         }
 
         #root {
@@ -321,10 +364,69 @@
                 Download: "⬇️",
                 Eye: "👁️",
                 ChevronDown: "▼",
-                ChevronRight: "▶"
+                ChevronRight: "▶",
+                Search: "🔍",
+                Filter: "🔽",
+                Settings: "⚙️",
+                Moon: "🌙",
+                Sun: "☀️",
+                BarChart: "📊",
+                Compare: "⚖️",
+                Help: "❓",
+                Print: "🖨️",
+                X: "✖️",
+                Menu: "☰"
             };
-            
+
             return <span className={`icon ${className}`} {...props}>{icons[name] || "•"}</span>;
+        };
+
+        // Tooltip Component for Contextual Help
+        const HelpTooltip = ({ content, children }) => {
+          const [showTooltip, setShowTooltip] = React.useState(false);
+
+          return (
+            <span
+              style={{ position: 'relative', display: 'inline-block', cursor: 'help' }}
+              onMouseEnter={() => setShowTooltip(true)}
+              onMouseLeave={() => setShowTooltip(false)}
+            >
+              {children}
+              {showTooltip && (
+                <div style={{
+                  position: 'absolute',
+                  bottom: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  marginBottom: '8px',
+                  padding: '12px 16px',
+                  backgroundColor: 'var(--color-gray-900)',
+                  color: 'white',
+                  borderRadius: '8px',
+                  fontSize: '13px',
+                  lineHeight: '1.5',
+                  whiteSpace: 'normal',
+                  width: '280px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+                  zIndex: 'var(--z-tooltip)',
+                  pointerEvents: 'none'
+                }}>
+                  {content}
+                  <div style={{
+                    position: 'absolute',
+                    top: '100%',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: 0,
+                    height: 0,
+                    borderLeft: '6px solid transparent',
+                    borderRight: '6px solid transparent',
+                    borderTop: '6px solid var(--color-gray-900)'
+                  }} />
+                </div>
+              )}
+            </span>
+          );
         };
 
         // Persistent Intelligence Layer - Storage Manager
@@ -1140,6 +1242,430 @@
           }
         };
 
+        // Export Utility Functions
+        const ExportUtils = {
+          // Export as JSON
+          exportAsJSON(analysisResults, filename = 'forensic-analysis.json') {
+            const exportData = {
+              metadata: {
+                exportDate: new Date().toISOString(),
+                applicationVersion: '2.0.0',
+                analysisType: 'Victorian Legal Document Analysis'
+              },
+              analysis: analysisResults,
+              defects: this.extractAllDefects(analysisResults),
+              summary: this.generateSummary(analysisResults)
+            };
+
+            const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+            saveAs(blob, filename);
+          },
+
+          // Export as PDF Report
+          async exportAsPDF(analysisResults, filename = 'forensic-analysis-report.pdf') {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            let yPos = 20;
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const margin = 20;
+
+            // Title Page
+            doc.setFontSize(24);
+            doc.setFont(undefined, 'bold');
+            doc.text('Forensic Legal Analysis Report', pageWidth / 2, yPos, { align: 'center' });
+
+            yPos += 15;
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`, pageWidth / 2, yPos, { align: 'center' });
+
+            yPos += 20;
+
+            // Executive Summary
+            doc.setFontSize(16);
+            doc.setFont(undefined, 'bold');
+            doc.text('Executive Summary', margin, yPos);
+            yPos += 10;
+
+            const summary = this.generateSummary(analysisResults);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Total Defects Found: ${summary.totalDefects}`, margin, yPos);
+            yPos += 6;
+            doc.text(`Critical Issues: ${summary.criticalCount}`, margin, yPos);
+            yPos += 6;
+            doc.text(`High Priority Issues: ${summary.highCount}`, margin, yPos);
+            yPos += 6;
+            doc.text(`Medium Priority Issues: ${summary.mediumCount}`, margin, yPos);
+            yPos += 6;
+            doc.text(`Low Priority Issues: ${summary.lowCount}`, margin, yPos);
+            yPos += 15;
+
+            // Defect Summary Table
+            if (yPos > 250) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Defect Summary', margin, yPos);
+            yPos += 10;
+
+            const defects = this.extractAllDefects(analysisResults);
+            const tableData = defects.map(d => [
+              d.preset || d.phase,
+              d.type || 'General',
+              d.severity || 'N/A',
+              (d.description || '').substring(0, 60) + '...'
+            ]);
+
+            doc.autoTable({
+              startY: yPos,
+              head: [['Preset/Phase', 'Type', 'Severity', 'Description']],
+              body: tableData,
+              styles: { fontSize: 8 },
+              headStyles: { fillColor: [37, 99, 235] },
+              margin: { left: margin, right: margin }
+            });
+
+            yPos = doc.lastAutoTable.finalY + 15;
+
+            // Statutory Compliance Matrix
+            if (yPos > 250) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Statutory Compliance Matrix', margin, yPos);
+            yPos += 10;
+
+            const statutoryRefs = this.extractStatutoryReferences(analysisResults);
+            if (statutoryRefs.length > 0) {
+              const statutoryData = statutoryRefs.slice(0, 20).map(ref => [
+                ref.text,
+                ref.type,
+                ref.compliance || 'Under Review'
+              ]);
+
+              doc.autoTable({
+                startY: yPos,
+                head: [['Statutory Reference', 'Type', 'Compliance Status']],
+                body: statutoryData,
+                styles: { fontSize: 8 },
+                headStyles: { fillColor: [37, 99, 235] },
+                margin: { left: margin, right: margin }
+              });
+
+              yPos = doc.lastAutoTable.finalY + 15;
+            }
+
+            // Recommendations
+            if (yPos > 250) {
+              doc.addPage();
+              yPos = 20;
+            }
+
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'bold');
+            doc.text('Recommendations', margin, yPos);
+            yPos += 10;
+
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'normal');
+            const recommendations = this.generateRecommendations(summary);
+            recommendations.forEach((rec, index) => {
+              if (yPos > 270) {
+                doc.addPage();
+                yPos = 20;
+              }
+              doc.text(`${index + 1}. ${rec}`, margin, yPos, { maxWidth: pageWidth - 2 * margin });
+              yPos += 8;
+            });
+
+            doc.save(filename);
+          },
+
+          // Export as Word Document
+          async exportAsWord(analysisResults, filename = 'forensic-analysis.docx') {
+            const { Document, Packer, Paragraph, TextRun, HeadingLevel, AlignmentType, Table, TableRow, TableCell, WidthType } = docx;
+
+            const summary = this.generateSummary(analysisResults);
+            const defects = this.extractAllDefects(analysisResults);
+
+            const doc = new Document({
+              sections: [{
+                properties: {},
+                children: [
+                  // Title
+                  new Paragraph({
+                    text: 'Forensic Legal Analysis Report',
+                    heading: HeadingLevel.TITLE,
+                    alignment: AlignmentType.CENTER,
+                  }),
+                  new Paragraph({
+                    text: `Generated: ${new Date().toLocaleDateString()} ${new Date().toLocaleTimeString()}`,
+                    alignment: AlignmentType.CENTER,
+                  }),
+                  new Paragraph({ text: '' }),
+
+                  // Executive Summary
+                  new Paragraph({
+                    text: 'Executive Summary',
+                    heading: HeadingLevel.HEADING_1,
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Total Defects Found: ', bold: true }),
+                      new TextRun({ text: summary.totalDefects.toString() }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Critical Issues: ', bold: true }),
+                      new TextRun({ text: summary.criticalCount.toString() }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'High Priority Issues: ', bold: true }),
+                      new TextRun({ text: summary.highCount.toString() }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Medium Priority Issues: ', bold: true }),
+                      new TextRun({ text: summary.mediumCount.toString() }),
+                    ],
+                  }),
+                  new Paragraph({
+                    children: [
+                      new TextRun({ text: 'Low Priority Issues: ', bold: true }),
+                      new TextRun({ text: summary.lowCount.toString() }),
+                    ],
+                  }),
+                  new Paragraph({ text: '' }),
+
+                  // Key Defects
+                  new Paragraph({
+                    text: 'Key Defects Identified',
+                    heading: HeadingLevel.HEADING_1,
+                  }),
+                  ...defects.slice(0, 50).map(defect =>
+                    new Paragraph({
+                      children: [
+                        new TextRun({ text: `[${defect.severity || 'N/A'}] `, bold: true }),
+                        new TextRun({ text: `${defect.preset || defect.phase}: ` }),
+                        new TextRun({ text: defect.description || defect.type || 'No description' }),
+                      ],
+                      bullet: { level: 0 },
+                    })
+                  ),
+
+                  new Paragraph({ text: '' }),
+
+                  // Recommendations
+                  new Paragraph({
+                    text: 'Recommendations',
+                    heading: HeadingLevel.HEADING_1,
+                  }),
+                  ...this.generateRecommendations(summary).map(rec =>
+                    new Paragraph({
+                      text: rec,
+                      bullet: { level: 0 },
+                    })
+                  ),
+                ],
+              }],
+            });
+
+            const blob = await Packer.toBlob(doc);
+            saveAs(blob, filename);
+          },
+
+          // Export Defects Only as CSV
+          exportAsCSV(analysisResults, filename = 'defects-only.csv') {
+            const defects = this.extractAllDefects(analysisResults);
+
+            // CSV Headers
+            let csv = 'Date,Defect Type,Severity,Statute,Description,Recommendation\n';
+
+            // CSV Rows
+            defects.forEach(defect => {
+              const row = [
+                new Date().toLocaleDateString(),
+                (defect.type || 'General').replace(/,/g, ';'),
+                defect.severity || 'N/A',
+                (defect.statute || 'N/A').replace(/,/g, ';'),
+                (defect.description || '').replace(/,/g, ';').substring(0, 200),
+                (defect.recommendation || 'Review required').replace(/,/g, ';')
+              ];
+              csv += row.map(field => `"${field}"`).join(',') + '\n';
+            });
+
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            saveAs(blob, filename);
+          },
+
+          // Helper: Extract all defects
+          extractAllDefects(results) {
+            const defects = [];
+
+            // Phase A defects
+            if (results.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (results.phaseA[fileKey]) {
+                  results.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings?.potentialIssues?.issues || preset.findings?.potentialIssues || [];
+                    if (Array.isArray(issues)) {
+                      issues.forEach(issue => {
+                        defects.push({
+                          phase: 'A',
+                          preset: preset.preset,
+                          severity: issue.severity,
+                          type: issue.type,
+                          description: issue.description,
+                          file: fileKey,
+                          statute: issue.statute || 'N/A',
+                          recommendation: issue.recommendation
+                        });
+                      });
+                    }
+                  });
+                }
+              });
+            }
+
+            // Phase B defects
+            if (results.phaseB) {
+              if (results.phaseB.discrepancies) {
+                results.phaseB.discrepancies.forEach(disc => {
+                  defects.push({
+                    phase: 'B',
+                    type: 'discrepancy',
+                    severity: disc.severity,
+                    description: disc.description,
+                    statute: 'Cross-document analysis'
+                  });
+                });
+              }
+
+              if (results.phaseB.omissions) {
+                results.phaseB.omissions.forEach(om => {
+                  defects.push({
+                    phase: 'B',
+                    type: 'omission',
+                    severity: 'Medium',
+                    element: om.element,
+                    description: `${om.element} - ${om.status}`,
+                    statute: 'Document completeness'
+                  });
+                });
+              }
+            }
+
+            // Phase C defects
+            if (results.phaseC && results.phaseC.defects) {
+              results.phaseC.defects.forEach(defect => {
+                defects.push({
+                  phase: 'C',
+                  ...defect
+                });
+              });
+            }
+
+            // Phase D defects
+            if (results.phaseD && results.phaseD.defects) {
+              results.phaseD.defects.forEach(defect => {
+                defects.push({
+                  phase: 'D',
+                  ...defect
+                });
+              });
+            }
+
+            return defects;
+          },
+
+          // Helper: Generate summary
+          generateSummary(results) {
+            const defects = this.extractAllDefects(results);
+
+            return {
+              totalDefects: defects.length,
+              criticalCount: defects.filter(d => d.severity === 'Critical').length,
+              highCount: defects.filter(d => d.severity === 'High').length,
+              mediumCount: defects.filter(d => d.severity === 'Medium').length,
+              lowCount: defects.filter(d => d.severity === 'Low').length,
+              byPhase: {
+                A: defects.filter(d => d.phase === 'A').length,
+                B: defects.filter(d => d.phase === 'B').length,
+                C: defects.filter(d => d.phase === 'C').length,
+                D: defects.filter(d => d.phase === 'D').length
+              }
+            };
+          },
+
+          // Helper: Extract statutory references
+          extractStatutoryReferences(results) {
+            const refs = [];
+
+            if (results.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (results.phaseA[fileKey] && results.phaseA[fileKey][0]?.findings?.legalReferences) {
+                  results.phaseA[fileKey][0].findings.legalReferences.forEach(ref => {
+                    refs.push({
+                      text: ref.text,
+                      type: ref.type,
+                      source: fileKey
+                    });
+                  });
+                }
+              });
+            }
+
+            return refs;
+          },
+
+          // Helper: Generate recommendations
+          generateRecommendations(summary) {
+            const recs = [];
+
+            if (summary.criticalCount > 0) {
+              recs.push(`URGENT: ${summary.criticalCount} critical issues require immediate attention. These may render proceedings invalid.`);
+            }
+
+            if (summary.highCount > 0) {
+              recs.push(`HIGH PRIORITY: ${summary.highCount} high-priority issues should be addressed before court proceedings.`);
+            }
+
+            if (summary.mediumCount > 0) {
+              recs.push(`Review ${summary.mediumCount} medium-priority issues for compliance improvements.`);
+            }
+
+            if (summary.byPhase.B > 0) {
+              recs.push('Cross-document discrepancies detected. Ensure all documents are properly synchronized and consistent.');
+            }
+
+            if (summary.byPhase.C > 0) {
+              recs.push('Victorian statutory compliance issues identified. Consult with legal counsel on legislative requirements.');
+            }
+
+            if (summary.byPhase.D > 0) {
+              recs.push('Criminal procedure defects found. Review Magistrates\' Court procedures and rectify before hearing.');
+            }
+
+            if (summary.totalDefects === 0) {
+              recs.push('No significant defects found. Documents appear to meet Victorian legal standards.');
+            }
+
+            return recs;
+          }
+        };
+
         const ForensicLegalAnalyzer = () => {
           const [files, setFiles] = useState({ fileA: null, fileB: null });
           const [fileContents, setFileContents] = useState({ fileA: '', fileB: '' });
@@ -1153,8 +1679,29 @@
           const [uploadProgress, setUploadProgress] = useState({ fileA: 0, fileB: 0 });
           const [isUploading, setIsUploading] = useState({ fileA: false, fileB: false });
           const [analysisProgress, setAnalysisProgress] = useState(0);
+          const [currentPreset, setCurrentPreset] = useState('');
+          const [defectCounter, setDefectCounter] = useState(0);
+          const [darkMode, setDarkMode] = useState(false);
+          const [viewMode, setViewMode] = useState('analysis'); // 'analysis', 'dashboard', 'comparison'
+          const [searchTerm, setSearchTerm] = useState('');
+          const [filterSeverity, setFilterSeverity] = useState('all'); // 'all', 'high', 'medium+', 'by-statute'
+          const [printMode, setPrintMode] = useState(false);
+          const [comparisonAnalyses, setComparisonAnalyses] = useState([null, null]);
+          const [showSettings, setShowSettings] = useState(false);
+          const [settings, setSettings] = useState({
+            severityThresholds: { critical: 90, high: 70, medium: 40 },
+            priorityStatutes: ['Crimes Act', 'Evidence Act', 'Criminal Procedure Act'],
+            exportFormat: 'pdf',
+            autoSaveFrequency: 5,
+            dataRetentionDays: 90
+          });
           const fileInputA = useRef(null);
           const fileInputB = useRef(null);
+
+          // Dark mode effect
+          React.useEffect(() => {
+            document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
+          }, [darkMode]);
 
           // Initialize persistent storage on component mount
           React.useEffect(() => {
@@ -1626,6 +2173,10 @@
               setContextualInsights(insights.contextualInsights);
               console.log('Contextual intelligence analysis completed:', insights.contextualInsights);
             }
+
+            // Count total defects
+            const totalDefects = ExportUtils.extractAllDefects(finalResults).length;
+            setDefectCounter(totalDefects);
 
             setAnalysisProgress(100);
             setAnalysisState('complete');
@@ -5902,12 +6453,213 @@ Authorities:
           return (
             <div style={{
               minHeight: '100vh',
-              background: 'linear-gradient(to bottom right, #eff6ff, #f3f4f6)',
-              padding: '24px'
-            }}>
+              background: darkMode
+                ? 'linear-gradient(to bottom right, #111827, #1f2937)'
+                : 'linear-gradient(to bottom right, #eff6ff, #f3f4f6)',
+              padding: '24px',
+              transition: 'background 0.3s ease'
+            }} className={printMode ? 'print-mode' : ''}>
               <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+                {/* Top Navigation Bar */}
                 <div style={{
-                  backgroundColor: 'white',
+                  backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  padding: '16px 24px',
+                  marginBottom: '16px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  flexWrap: 'wrap',
+                  gap: '12px'
+                }}>
+                  {/* View Mode Switcher */}
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button
+                      onClick={() => setViewMode('analysis')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: viewMode === 'analysis' ? 'var(--color-primary)' : 'var(--color-gray-200)',
+                        color: viewMode === 'analysis' ? 'white' : 'var(--text-primary)',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <Icon name="FileText" /> Analysis
+                    </button>
+                    <button
+                      onClick={() => setViewMode('dashboard')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: viewMode === 'dashboard' ? 'var(--color-primary)' : 'var(--color-gray-200)',
+                        color: viewMode === 'dashboard' ? 'white' : 'var(--text-primary)',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <Icon name="BarChart" /> Dashboard
+                    </button>
+                    <button
+                      onClick={() => setViewMode('comparison')}
+                      style={{
+                        padding: '8px 16px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: viewMode === 'comparison' ? 'var(--color-primary)' : 'var(--color-gray-200)',
+                        color: viewMode === 'comparison' ? 'white' : 'var(--text-primary)',
+                        fontWeight: '600',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                    >
+                      <Icon name="Compare" /> Compare
+                    </button>
+                  </div>
+
+                  {/* Actions */}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <button
+                      onClick={() => setDarkMode(!darkMode)}
+                      style={{
+                        padding: '8px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: 'var(--color-gray-200)',
+                        color: 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '18px'
+                      }}
+                      title={darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+                    >
+                      <Icon name={darkMode ? 'Sun' : 'Moon'} />
+                    </button>
+                    <button
+                      onClick={() => setPrintMode(!printMode)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: printMode ? 'var(--color-primary)' : 'var(--color-gray-200)',
+                        color: printMode ? 'white' : 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                      title="Toggle Print-Friendly View"
+                    >
+                      <Icon name="Print" />
+                    </button>
+                    <button
+                      onClick={() => setShowSettings(!showSettings)}
+                      style={{
+                        padding: '8px 12px',
+                        borderRadius: '6px',
+                        border: 'none',
+                        background: showSettings ? 'var(--color-primary)' : 'var(--color-gray-200)',
+                        color: showSettings ? 'white' : 'var(--text-primary)',
+                        cursor: 'pointer',
+                        fontSize: '14px'
+                      }}
+                      title="Settings"
+                    >
+                      <Icon name="Settings" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Settings Panel */}
+                {showSettings && (
+                  <div style={{
+                    backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    padding: '24px',
+                    marginBottom: '16px'
+                  }}>
+                    <h2 style={{
+                      fontSize: '20px',
+                      fontWeight: 'bold',
+                      color: 'var(--text-primary)',
+                      marginBottom: '16px'
+                    }}>
+                      Settings <Icon name="Settings" />
+                    </h2>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '16px' }}>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontWeight: '600' }}>
+                          Export Format Preference
+                        </label>
+                        <select
+                          value={settings.exportFormat}
+                          onChange={(e) => setSettings({ ...settings, exportFormat: e.target.value })}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)'
+                          }}
+                        >
+                          <option value="pdf">PDF</option>
+                          <option value="word">Word</option>
+                          <option value="json">JSON</option>
+                          <option value="csv">CSV</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontWeight: '600' }}>
+                          Auto-Save Frequency (minutes)
+                        </label>
+                        <input
+                          type="number"
+                          value={settings.autoSaveFrequency}
+                          onChange={(e) => setSettings({ ...settings, autoSaveFrequency: parseInt(e.target.value) })}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)'
+                          }}
+                          min="1"
+                          max="60"
+                        />
+                      </div>
+                      <div>
+                        <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-primary)', fontWeight: '600' }}>
+                          Data Retention (days)
+                        </label>
+                        <input
+                          type="number"
+                          value={settings.dataRetentionDays}
+                          onChange={(e) => setSettings({ ...settings, dataRetentionDays: parseInt(e.target.value) })}
+                          style={{
+                            width: '100%',
+                            padding: '8px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)'
+                          }}
+                          min="7"
+                          max="365"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Main Content Area - Conditional based on viewMode */}
+                {viewMode === 'analysis' && (
+                <div style={{
+                  backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
                   borderRadius: '12px',
                   boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                   padding: '32px',
@@ -5923,12 +6675,12 @@ Authorities:
                       <h1 style={{
                         fontSize: '30px',
                         fontWeight: 'bold',
-                        color: '#111827',
+                        color: 'var(--text-primary)',
                         marginBottom: '8px'
                       }}>
                         Forensic Legal Document Analyzer
                       </h1>
-                      <p style={{ color: '#6b7280' }}>
+                      <p style={{ color: 'var(--text-secondary)' }}>
                         Multi-Layered Interpretive Analysis System for Evidentiary Documents
                       </p>
                     </div>
@@ -5936,26 +6688,53 @@ Authorities:
                   </div>
 
                   <div style={{
-                    backgroundColor: '#eff6ff',
+                    backgroundColor: darkMode ? 'var(--bg-primary)' : '#eff6ff',
                     borderLeft: '4px solid #2563eb',
                     padding: '16px',
                     marginBottom: '24px'
                   }}>
                     <h3 style={{
                       fontWeight: '600',
-                      color: '#1e3a8a',
+                      color: darkMode ? 'var(--color-primary)' : '#1e3a8a',
                       marginBottom: '8px'
-                    }}>System Capabilities:</h3>
+                    }}>
+                      System Capabilities:
+                      <HelpTooltip content="This system performs comprehensive multi-phase analysis of legal documents using Victorian legal standards and statutes.">
+                        <span style={{ marginLeft: '8px', fontSize: '16px', cursor: 'help' }}>
+                          <Icon name="Help" />
+                        </span>
+                      </HelpTooltip>
+                    </h3>
                     <ul style={{
                       fontSize: '14px',
-                      color: '#1e40af',
+                      color: darkMode ? 'var(--text-secondary)' : '#1e40af',
                       listStyle: 'none',
                       padding: 0
                     }}>
-                      <li style={{ marginBottom: '4px' }}>• Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks</li>
-                      <li style={{ marginBottom: '4px' }}>• Phase B: Statutory framework identification and cross-reference analysis</li>
-                      <li style={{ marginBottom: '4px' }}>• Phase C: Comprehensive statutory interpretation applying modern purposive approach</li>
-                      <li style={{ marginBottom: '4px' }}>• Phase D: Victorian Magistrates' Court criminal procedure analysis with court-ready submissions</li>
+                      <li style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        • Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks
+                        <HelpTooltip content="Phase A analyzes documents using 8 different legal frameworks including evidentiary defects, statutory compliance, and procedural accuracy.">
+                          <span style={{ fontSize: '14px' }}><Icon name="Help" /></span>
+                        </HelpTooltip>
+                      </li>
+                      <li style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        • Phase B: Statutory framework identification and cross-reference analysis
+                        <HelpTooltip content="Phase B identifies inconsistencies between documents and validates statutory references across Victorian legislation.">
+                          <span style={{ fontSize: '14px' }}><Icon name="Help" /></span>
+                        </HelpTooltip>
+                      </li>
+                      <li style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        • Phase C: Comprehensive statutory interpretation applying modern purposive approach
+                        <HelpTooltip content="Phase C applies modern purposive interpretation methods to ensure compliance with Victorian statutory requirements and legislative intent.">
+                          <span style={{ fontSize: '14px' }}><Icon name="Help" /></span>
+                        </HelpTooltip>
+                      </li>
+                      <li style={{ marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        • Phase D: Victorian Magistrates' Court criminal procedure analysis with court-ready submissions
+                        <HelpTooltip content="Phase D specifically analyzes criminal procedure compliance for Victorian Magistrates' Court, identifying jurisdictional and procedural defects.">
+                          <span style={{ fontSize: '14px' }}><Icon name="Help" /></span>
+                        </HelpTooltip>
+                      </li>
                       <li>• Identifies legal flaws, factual inconsistencies, and procedural defects</li>
                     </ul>
                   </div>
@@ -6014,7 +6793,7 @@ Authorities:
                 {analysisResults && (
                   <div>
                     <div style={{
-                      backgroundColor: 'white',
+                      backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
                       borderRadius: '12px',
                       boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
                       padding: '24px',
@@ -6024,29 +6803,142 @@ Authorities:
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        marginBottom: '16px'
+                        marginBottom: '16px',
+                        flexWrap: 'wrap',
+                        gap: '12px'
                       }}>
                         <h2 style={{
                           fontSize: '24px',
                           fontWeight: 'bold',
-                          color: '#111827'
-                        }}>Analysis Report</h2>
-                        <button
-                          onClick={exportReport}
+                          color: 'var(--text-primary)'
+                        }}>
+                          Analysis Report
+                          {defectCounter > 0 && (
+                            <span style={{
+                              marginLeft: '12px',
+                              fontSize: '14px',
+                              backgroundColor: 'var(--color-error)',
+                              color: 'white',
+                              padding: '4px 12px',
+                              borderRadius: '12px',
+                              fontWeight: '600'
+                            }}>
+                              {defectCounter} Defects
+                            </span>
+                          )}
+                        </h2>
+
+                        {/* Export Options Dropdown */}
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          <button
+                            onClick={() => ExportUtils.exportAsJSON(analysisResults)}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'var(--color-info)',
+                              color: 'white',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                            title="Export as JSON"
+                          >
+                            <Icon name="Download" /> JSON
+                          </button>
+                          <button
+                            onClick={() => ExportUtils.exportAsPDF(analysisResults)}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'var(--color-error)',
+                              color: 'white',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                            title="Export as PDF Report"
+                          >
+                            <Icon name="Download" /> PDF
+                          </button>
+                          <button
+                            onClick={() => ExportUtils.exportAsWord(analysisResults)}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'var(--color-primary)',
+                              color: 'white',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                            title="Export as Word Document"
+                          >
+                            <Icon name="Download" /> Word
+                          </button>
+                          <button
+                            onClick={() => ExportUtils.exportAsCSV(analysisResults)}
+                            style={{
+                              padding: '8px 12px',
+                              backgroundColor: 'var(--color-success)',
+                              color: 'white',
+                              borderRadius: '6px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '13px',
+                              fontWeight: '600'
+                            }}
+                            title="Export Defects as CSV"
+                          >
+                            <Icon name="Download" /> CSV
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Search and Filter Bar */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '12px',
+                        marginBottom: '16px',
+                        flexWrap: 'wrap'
+                      }}>
+                        <div style={{ flex: '1', minWidth: '200px' }}>
+                          <input
+                            type="text"
+                            placeholder="Search statutory references, findings..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            style={{
+                              width: '100%',
+                              padding: '10px',
+                              borderRadius: '6px',
+                              border: '1px solid var(--border-color)',
+                              background: darkMode ? 'var(--bg-primary)' : 'white',
+                              color: 'var(--text-primary)',
+                              fontSize: '14px'
+                            }}
+                          />
+                        </div>
+                        <select
+                          value={filterSeverity}
+                          onChange={(e) => setFilterSeverity(e.target.value)}
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            padding: '8px 16px',
-                            backgroundColor: '#16a34a',
-                            color: 'white',
-                            borderRadius: '8px',
-                            border: 'none',
-                            cursor: 'pointer',
-                            fontSize: '14px'
+                            padding: '10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)',
+                            fontSize: '14px',
+                            cursor: 'pointer'
                           }}
                         >
-                          ⬇️ Export Report
-                        </button>
+                          <option value="all">All Severities</option>
+                          <option value="critical">Critical Only</option>
+                          <option value="high">High Only</option>
+                          <option value="medium+">Medium & Above</option>
+                        </select>
                       </div>
 
                       <div style={{
@@ -8723,6 +9615,426 @@ Authorities:
                           )}
                         </div>
                       </AnalysisSection>
+                    )}
+                  </div>
+                )}
+
+                {/* Dashboard View */}
+                {viewMode === 'dashboard' && (
+                  <div style={{
+                    backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    padding: '32px',
+                    marginBottom: '24px'
+                  }}>
+                    <h1 style={{
+                      fontSize: '30px',
+                      fontWeight: 'bold',
+                      color: 'var(--text-primary)',
+                      marginBottom: '24px'
+                    }}>
+                      <Icon name="BarChart" /> Analysis Dashboard
+                    </h1>
+
+                    {/* Summary Statistics */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                      gap: '16px',
+                      marginBottom: '32px'
+                    }}>
+                      <div style={{
+                        backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        borderLeft: '4px solid var(--color-primary)'
+                      }}>
+                        <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--color-primary)' }}>
+                          {historicalAnalyses.length}
+                        </div>
+                        <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                          Total Analyses
+                        </div>
+                      </div>
+
+                      <div style={{
+                        backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        borderLeft: '4px solid var(--color-error)'
+                      }}>
+                        <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--color-error)' }}>
+                          {analysisResults ? ExportUtils.extractAllDefects(analysisResults).filter(d => d.severity === 'Critical').length : 0}
+                        </div>
+                        <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                          Critical Issues
+                        </div>
+                      </div>
+
+                      <div style={{
+                        backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        borderLeft: '4px solid var(--color-success)'
+                      }}>
+                        <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--color-success)' }}>
+                          {analysisResults ? new Date(analysisResults.timestamp || Date.now()).toLocaleDateString() : 'N/A'}
+                        </div>
+                        <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                          Most Recent
+                        </div>
+                      </div>
+
+                      <div style={{
+                        backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                        padding: '20px',
+                        borderRadius: '12px',
+                        borderLeft: '4px solid var(--color-warning)'
+                      }}>
+                        <div style={{ fontSize: '36px', fontWeight: 'bold', color: 'var(--color-warning)' }}>
+                          {analysisResults ? ExportUtils.extractAllDefects(analysisResults).length : 0}
+                        </div>
+                        <div style={{ color: 'var(--text-secondary)', marginTop: '8px' }}>
+                          Total Defects
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Quick Actions */}
+                    <div style={{ marginBottom: '32px' }}>
+                      <h2 style={{
+                        fontSize: '20px',
+                        fontWeight: 'bold',
+                        color: 'var(--text-primary)',
+                        marginBottom: '16px'
+                      }}>
+                        Quick Actions
+                      </h2>
+                      <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                        <button
+                          onClick={() => setViewMode('analysis')}
+                          style={{
+                            padding: '12px 24px',
+                            backgroundColor: 'var(--color-primary)',
+                            color: 'white',
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <Icon name="FileText" /> New Analysis
+                        </button>
+                        <button
+                          onClick={() => setViewMode('comparison')}
+                          disabled={historicalAnalyses.length < 2}
+                          style={{
+                            padding: '12px 24px',
+                            backgroundColor: historicalAnalyses.length < 2 ? 'var(--color-gray-300)' : 'var(--color-secondary)',
+                            color: 'white',
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: historicalAnalyses.length < 2 ? 'not-allowed' : 'pointer',
+                            fontSize: '14px',
+                            fontWeight: '600'
+                          }}
+                        >
+                          <Icon name="Compare" /> Compare Analyses
+                        </button>
+                        {analysisResults && (
+                          <button
+                            onClick={() => ExportUtils.exportAsPDF(analysisResults)}
+                            style={{
+                              padding: '12px 24px',
+                              backgroundColor: 'var(--color-success)',
+                              color: 'white',
+                              borderRadius: '8px',
+                              border: 'none',
+                              cursor: 'pointer',
+                              fontSize: '14px',
+                              fontWeight: '600'
+                            }}
+                          >
+                            <Icon name="Download" /> Export Latest Report
+                          </button>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Historical Analyses */}
+                    {historicalAnalyses.length > 0 && (
+                      <div>
+                        <h2 style={{
+                          fontSize: '20px',
+                          fontWeight: 'bold',
+                          color: 'var(--text-primary)',
+                          marginBottom: '16px'
+                        }}>
+                          Recent Analyses
+                        </h2>
+                        <div style={{
+                          display: 'grid',
+                          gap: '12px'
+                        }}>
+                          {historicalAnalyses.slice(0, 10).map((analysis, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center'
+                              }}
+                            >
+                              <div>
+                                <div style={{ fontWeight: '600', color: 'var(--text-primary)' }}>
+                                  {analysis.fileAName || 'Document A'} vs {analysis.fileBName || 'Document B'}
+                                </div>
+                                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>
+                                  {new Date(analysis.timestamp).toLocaleString()}
+                                </div>
+                              </div>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                <span style={{
+                                  backgroundColor: 'var(--color-error-light)',
+                                  color: 'var(--color-error)',
+                                  padding: '4px 12px',
+                                  borderRadius: '12px',
+                                  fontSize: '12px',
+                                  fontWeight: '600'
+                                }}>
+                                  {analysis.defects?.length || 0} Defects
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {historicalAnalyses.length === 0 && (
+                      <div style={{
+                        textAlign: 'center',
+                        padding: '48px',
+                        color: 'var(--text-secondary)'
+                      }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>📊</div>
+                        <p>No analyses yet. Upload documents to get started.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Comparison View */}
+                {viewMode === 'comparison' && (
+                  <div style={{
+                    backgroundColor: darkMode ? 'var(--bg-secondary)' : 'white',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                    padding: '32px',
+                    marginBottom: '24px'
+                  }}>
+                    <h1 style={{
+                      fontSize: '30px',
+                      fontWeight: 'bold',
+                      color: 'var(--text-primary)',
+                      marginBottom: '24px'
+                    }}>
+                      <Icon name="Compare" /> Comparison Mode
+                    </h1>
+
+                    <p style={{
+                      color: 'var(--text-secondary)',
+                      marginBottom: '24px'
+                    }}>
+                      Compare two analyses to track changes, improvements, and compliance trends over time.
+                    </p>
+
+                    {/* Analysis Selectors */}
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                      gap: '16px',
+                      marginBottom: '32px'
+                    }}>
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '600',
+                          color: 'var(--text-primary)'
+                        }}>
+                          First Analysis
+                        </label>
+                        <select
+                          value={comparisonAnalyses[0]?.id || ''}
+                          onChange={(e) => {
+                            const selected = historicalAnalyses.find(a => a.id == e.target.value);
+                            setComparisonAnalyses([selected, comparisonAnalyses[1]]);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <option value="">Select an analysis...</option>
+                          {historicalAnalyses.map((analysis, idx) => (
+                            <option key={idx} value={analysis.id}>
+                              {new Date(analysis.timestamp).toLocaleString()} - {analysis.defects?.length || 0} defects
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{
+                          display: 'block',
+                          marginBottom: '8px',
+                          fontWeight: '600',
+                          color: 'var(--text-primary)'
+                        }}>
+                          Second Analysis
+                        </label>
+                        <select
+                          value={comparisonAnalyses[1]?.id || ''}
+                          onChange={(e) => {
+                            const selected = historicalAnalyses.find(a => a.id == e.target.value);
+                            setComparisonAnalyses([comparisonAnalyses[0], selected]);
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '10px',
+                            borderRadius: '6px',
+                            border: '1px solid var(--border-color)',
+                            background: darkMode ? 'var(--bg-primary)' : 'white',
+                            color: 'var(--text-primary)',
+                            fontSize: '14px'
+                          }}
+                        >
+                          <option value="">Select an analysis...</option>
+                          {historicalAnalyses.map((analysis, idx) => (
+                            <option key={idx} value={analysis.id}>
+                              {new Date(analysis.timestamp).toLocaleString()} - {analysis.defects?.length || 0} defects
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Comparison Results */}
+                    {comparisonAnalyses[0] && comparisonAnalyses[1] && (
+                      <div>
+                        <h2 style={{
+                          fontSize: '20px',
+                          fontWeight: 'bold',
+                          color: 'var(--text-primary)',
+                          marginBottom: '16px'
+                        }}>
+                          Comparison Results
+                        </h2>
+
+                        {/* Side-by-Side Metrics */}
+                        <div style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                          gap: '16px',
+                          marginBottom: '24px'
+                        }}>
+                          {['Total Defects', 'Critical Issues', 'High Priority', 'Medium Priority'].map((metric, idx) => {
+                            const keys = ['', 'Critical', 'High', 'Medium'];
+                            const val1 = keys[idx] === ''
+                              ? comparisonAnalyses[0].defects?.length || 0
+                              : comparisonAnalyses[0].defects?.filter(d => d.severity === keys[idx]).length || 0;
+                            const val2 = keys[idx] === ''
+                              ? comparisonAnalyses[1].defects?.length || 0
+                              : comparisonAnalyses[1].defects?.filter(d => d.severity === keys[idx]).length || 0;
+                            const diff = val2 - val1;
+                            const improved = diff < 0;
+
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  backgroundColor: darkMode ? 'var(--bg-primary)' : 'var(--color-gray-50)',
+                                  padding: '16px',
+                                  borderRadius: '8px',
+                                  borderLeft: `4px solid ${improved ? 'var(--color-success)' : diff > 0 ? 'var(--color-error)' : 'var(--color-gray-400)'}`
+                                }}
+                              >
+                                <div style={{
+                                  fontSize: '14px',
+                                  fontWeight: '600',
+                                  color: 'var(--text-primary)',
+                                  marginBottom: '8px'
+                                }}>
+                                  {metric}
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                  <div>
+                                    <div style={{ fontSize: '24px', fontWeight: 'bold', color: 'var(--text-primary)' }}>
+                                      {val1} → {val2}
+                                    </div>
+                                  </div>
+                                  <div style={{
+                                    fontSize: '18px',
+                                    fontWeight: 'bold',
+                                    color: improved ? 'var(--color-success)' : diff > 0 ? 'var(--color-error)' : 'var(--text-secondary)'
+                                  }}>
+                                    {diff > 0 ? `+${diff}` : diff < 0 ? diff : '0'}
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Trend Analysis */}
+                        <div style={{
+                          backgroundColor: comparisonAnalyses[1].defects?.length < comparisonAnalyses[0].defects?.length
+                            ? 'var(--color-success-light)'
+                            : comparisonAnalyses[1].defects?.length > comparisonAnalyses[0].defects?.length
+                              ? 'var(--color-error-light)'
+                              : 'var(--color-info-light)',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '24px'
+                        }}>
+                          <h3 style={{ fontWeight: '600', marginBottom: '8px' }}>
+                            {comparisonAnalyses[1].defects?.length < comparisonAnalyses[0].defects?.length
+                              ? '✅ Improvement Detected'
+                              : comparisonAnalyses[1].defects?.length > comparisonAnalyses[0].defects?.length
+                                ? '⚠️ Deterioration Detected'
+                                : 'ℹ️ No Change'}
+                          </h3>
+                          <p style={{ fontSize: '14px' }}>
+                            {comparisonAnalyses[1].defects?.length < comparisonAnalyses[0].defects?.length
+                              ? `Total defects decreased by ${comparisonAnalyses[0].defects?.length - comparisonAnalyses[1].defects?.length}. Document quality has improved.`
+                              : comparisonAnalyses[1].defects?.length > comparisonAnalyses[0].defects?.length
+                                ? `Total defects increased by ${comparisonAnalyses[1].defects?.length - comparisonAnalyses[0].defects?.length}. Additional issues identified.`
+                                : 'Defect count remains unchanged between analyses.'}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {(!comparisonAnalyses[0] || !comparisonAnalyses[1]) && (
+                      <div style={{
+                        textAlign: 'center',
+                        padding: '48px',
+                        color: 'var(--text-secondary)'
+                      }}>
+                        <div style={{ fontSize: '48px', marginBottom: '16px' }}>⚖️</div>
+                        <p>Select two analyses to compare</p>
+                      </div>
                     )}
                   </div>
                 )}
