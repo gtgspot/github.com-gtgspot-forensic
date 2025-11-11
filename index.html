@@ -7,23 +7,291 @@
     <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
+        /* CSS Custom Properties for Theme System */
+        :root {
+            /* Color Palette */
+            --color-primary: #2563eb;
+            --color-primary-dark: #1d4ed8;
+            --color-primary-light: #eff6ff;
+            --color-secondary: #f59e0b;
+            --color-secondary-light: #fef3c7;
+            --color-success: #16a34a;
+            --color-success-light: #dcfce7;
+            --color-warning: #f59e0b;
+            --color-warning-light: #fef3c7;
+            --color-error: #dc2626;
+            --color-error-light: #fee2e2;
+            --color-info: #0284c7;
+            --color-info-light: #e0f2fe;
+
+            /* Neutral Colors */
+            --color-gray-50: #f9fafb;
+            --color-gray-100: #f3f4f6;
+            --color-gray-200: #e5e7eb;
+            --color-gray-300: #d1d5db;
+            --color-gray-400: #9ca3af;
+            --color-gray-500: #6b7280;
+            --color-gray-600: #4b5563;
+            --color-gray-700: #374151;
+            --color-gray-800: #1f2937;
+            --color-gray-900: #111827;
+
+            /* Severity Colors */
+            --color-critical: #fecaca;
+            --color-critical-text: #991b1b;
+            --color-high: #fcd34d;
+            --color-high-text: #92400e;
+            --color-medium: #a5f3fc;
+            --color-medium-text: #0e7490;
+            --color-low: #bbf7d0;
+            --color-low-text: #166534;
+
+            /* Spacing System */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-2xl: 48px;
+
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --radius-xl: 16px;
+            --radius-full: 9999px;
+
+            /* Shadows */
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+            /* Typography */
+            --font-size-xs: 11px;
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 24px;
+            --font-size-3xl: 30px;
+            --font-size-4xl: 36px;
+
+            /* Transitions */
+            --transition-fast: 150ms ease-in-out;
+            --transition-base: 250ms ease-in-out;
+            --transition-slow: 350ms ease-in-out;
+
+            /* Z-index Scale */
+            --z-dropdown: 1000;
+            --z-modal: 2000;
+            --z-tooltip: 3000;
+        }
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-        
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             -webkit-font-smoothing: antialiased;
             -moz-osx-font-smoothing: grayscale;
+            font-size: var(--font-size-base);
+            color: var(--color-gray-900);
         }
-        
+
         #root {
             width: 100%;
             min-height: 100vh;
+        }
+
+        /* Icon styles - using Unicode symbols instead of Lucide */
+        .icon {
+            display: inline-block;
+            width: 1em;
+            height: 1em;
+            vertical-align: middle;
+        }
+
+        /* Smooth Transitions */
+        button, a, .card, .section {
+            transition: all var(--transition-base);
+        }
+
+        /* Focus Styles for Accessibility */
+        button:focus-visible,
+        a:focus-visible,
+        input:focus-visible {
+            outline: 3px solid var(--color-primary);
+            outline-offset: 2px;
+        }
+
+        /* Hover Effects */
+        button:not(:disabled):hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        button:not(:disabled):active {
+            transform: translateY(0);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        @keyframes spin {
+            from {
+                transform: rotate(0deg);
+            }
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: -1000px 0;
+            }
+            100% {
+                background-position: 1000px 0;
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn var(--transition-base);
+        }
+
+        .slide-in {
+            animation: slideIn var(--transition-base);
+        }
+
+        .pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        .spin {
+            animation: spin 1s linear infinite;
+        }
+
+        /* Skeleton Loading States */
+        .skeleton {
+            background: linear-gradient(
+                90deg,
+                var(--color-gray-200) 0%,
+                var(--color-gray-100) 50%,
+                var(--color-gray-200) 100%
+            );
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
+            border-radius: var(--radius-md);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            :root {
+                --font-size-3xl: 24px;
+                --spacing-xl: 24px;
+                --spacing-2xl: 32px;
+            }
+
+            body {
+                font-size: var(--font-size-sm);
+            }
+        }
+
+        /* Print Styles */
+        @media print {
+            body {
+                background: white !important;
+            }
+
+            button, .no-print {
+                display: none !important;
+            }
+
+            .card, .section {
+                box-shadow: none !important;
+                border: 1px solid var(--color-gray-300) !important;
+                page-break-inside: avoid;
+            }
+
+            h1, h2, h3, h4, h5, h6 {
+                page-break-after: avoid;
+            }
+        }
+
+        /* Scrollbar Styling */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--color-gray-100);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--color-gray-400);
+            border-radius: var(--radius-full);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--color-gray-500);
+        }
+
+        /* Utility Classes */
+        .text-center {
+            text-align: center;
+        }
+
+        .truncate {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .visually-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            white-space: nowrap;
+            border: 0;
         }
     </style>
 </head>
@@ -31,15 +299,836 @@
     <div id="root"></div>
     
     <script type="text/babel">
-        const { useState, useRef, useEffect } = React;
-        const { 
-            Upload, FileText, AlertCircle, CheckCircle, Loader, 
-            Download, Eye, ChevronDown, ChevronRight 
-        } = lucide;
+        const { useState, useRef } = React;
 
-        const Icon = ({ name, ...props }) => {
-            const LucideIcon = lucide[name];
-            return React.createElement(LucideIcon, props);
+        // Simple icon components using Unicode symbols
+        const Icon = ({ name, className = "", ...props }) => {
+            const icons = {
+                Upload: "⬆️",
+                FileText: "📄",
+                AlertCircle: "⚠️",
+                CheckCircle: "✅",
+                Loader: "⌛",
+                Download: "⬇️",
+                Eye: "👁️",
+                ChevronDown: "▼",
+                ChevronRight: "▶"
+            };
+            
+            return <span className={`icon ${className}`} {...props}>{icons[name] || "•"}</span>;
+        };
+
+        // Persistent Intelligence Layer - Storage Manager
+        const AnalysisMemory = {
+          storage: null,
+          dbPromise: null,
+
+          init() {
+            if (this.dbPromise) return this.dbPromise;
+
+            this.dbPromise = new Promise((resolve, reject) => {
+              const request = window.indexedDB.open('ForensicAnalysisDB', 1);
+
+              request.onupgradeneeded = (e) => {
+                const db = e.target.result;
+                if (!db.objectStoreNames.contains('analyses')) {
+                  db.createObjectStore('analyses', { keyPath: 'id', autoIncrement: true });
+                }
+                if (!db.objectStoreNames.contains('patterns')) {
+                  db.createObjectStore('patterns', { keyPath: 'pattern' });
+                }
+              };
+
+              request.onsuccess = (e) => {
+                this.storage = e.target.result;
+                resolve(this.storage);
+              };
+
+              request.onerror = (e) => {
+                console.error('Failed to initialize IndexedDB:', e.target.error);
+                reject(e.target.error);
+              };
+            });
+
+            return this.dbPromise;
+          },
+
+          async getDB() {
+            if (!this.storage) {
+              await this.init();
+            }
+            return this.storage;
+          },
+
+          async saveAnalysis(results, files) {
+            try {
+              const db = await this.getDB();
+              const analysis = {
+                timestamp: new Date().toISOString(),
+                fileAName: files.fileA?.name,
+                fileBName: files.fileB?.name,
+                findings: results,
+                defects: this.extractDefects(results),
+                crossReferences: this.buildCrossReferences(results)
+              };
+
+              const tx = db.transaction('analyses', 'readwrite');
+              await tx.objectStore('analyses').add(analysis);
+
+              // Learn patterns from this analysis
+              await this.updatePatterns(analysis);
+
+              console.log('Analysis saved to persistent storage');
+            } catch (error) {
+              console.error('Failed to save analysis:', error);
+            }
+          },
+
+          extractDefects(results) {
+            const defects = [];
+
+            // Phase A defects
+            ['fileA', 'fileB'].forEach(fileKey => {
+              results.phaseA[fileKey].forEach(preset => {
+                const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                if (Array.isArray(issues)) {
+                  issues.forEach(issue => {
+                    defects.push({
+                      phase: 'A',
+                      preset: preset.preset,
+                      severity: issue.severity,
+                      type: issue.type,
+                      description: issue.description,
+                      file: fileKey,
+                      timestamp: new Date().toISOString()
+                    });
+                  });
+                }
+              });
+            });
+
+            // Phase B defects
+            if (results.phaseB.discrepancies) {
+              results.phaseB.discrepancies.forEach(disc => {
+                defects.push({
+                  phase: 'B',
+                  type: 'discrepancy',
+                  severity: disc.severity,
+                  description: disc.description,
+                  timestamp: new Date().toISOString()
+                });
+              });
+            }
+
+            if (results.phaseB.omissions) {
+              results.phaseB.omissions.forEach(om => {
+                defects.push({
+                  phase: 'B',
+                  type: 'omission',
+                  element: om.element,
+                  status: om.status,
+                  timestamp: new Date().toISOString()
+                });
+              });
+            }
+
+            return defects;
+          },
+
+          buildCrossReferences(results) {
+            const refs = {
+              statutory: [],
+              procedural: [],
+              temporal: [],
+              evidential: []
+            };
+
+            // Extract all statutory references
+            ['fileA', 'fileB'].forEach(fileKey => {
+              if (results.phaseA[fileKey][0]?.findings?.legalReferences) {
+                results.phaseA[fileKey][0].findings.legalReferences.forEach(ref => {
+                  refs.statutory.push({
+                    text: ref.text,
+                    type: ref.type,
+                    source: fileKey,
+                    relatedDefects: this.findRelatedDefects(ref.text, results)
+                  });
+                });
+              }
+            });
+
+            return refs;
+          },
+
+          findRelatedDefects(reference, results) {
+            const related = [];
+            const refLower = reference.toLowerCase();
+
+            ['fileA', 'fileB'].forEach(fileKey => {
+              results.phaseA[fileKey].forEach(preset => {
+                const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                if (Array.isArray(issues)) {
+                  issues.forEach(issue => {
+                    if (issue.description.toLowerCase().includes(refLower)) {
+                      related.push({
+                        preset: preset.preset,
+                        type: issue.type,
+                        severity: issue.severity
+                      });
+                    }
+                  });
+                }
+              });
+            });
+
+            return related;
+          },
+
+          async updatePatterns(analysis) {
+            try {
+              const db = await this.getDB();
+              // This could be expanded to learn common patterns in defects
+              // For now, just log that pattern learning is available
+              console.log('Pattern learning capability ready');
+            } catch (error) {
+              console.error('Failed to update patterns:', error);
+            }
+          },
+
+          async getAllAnalyses() {
+            try {
+              const db = await this.getDB();
+              const tx = db.transaction('analyses', 'readonly');
+              const store = tx.objectStore('analyses');
+              const request = store.getAll();
+
+              return new Promise((resolve, reject) => {
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+              });
+            } catch (error) {
+              console.error('Failed to retrieve analyses:', error);
+              return [];
+            }
+          }
+        };
+
+        // Timeline Visualization Component
+        const DefectTimeline = ({ analyses }) => {
+          const [selectedDefect, setSelectedDefect] = useState(null);
+
+          // Group defects by type across all analyses
+          const defectEvolution = React.useMemo(() => {
+            if (!analyses || analyses.length === 0) return {};
+
+            return analyses.reduce((acc, analysis) => {
+              if (analysis.defects) {
+                analysis.defects.forEach(defect => {
+                  const key = `${defect.type}-${defect.severity}`;
+                  if (!acc[key]) acc[key] = [];
+                  acc[key].push({
+                    date: analysis.timestamp,
+                    description: defect.description,
+                    file: analysis.fileAName
+                  });
+                });
+              }
+              return acc;
+            }, {});
+          }, [analyses]);
+
+          if (!analyses || analyses.length === 0) {
+            return (
+              <div style={{ padding: '20px', backgroundColor: '#f9fafb', textAlign: 'center' }}>
+                <p style={{ color: '#6b7280' }}>No historical analysis data available yet. Complete analyses will appear here over time.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px', backgroundColor: '#f9fafb' }}>
+              <h3>📊 Defect Evolution Timeline</h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+                Showing patterns across {analyses.length} historical analysis sessions
+              </p>
+
+              {Object.entries(defectEvolution).map(([type, occurrences]) => (
+                <div key={type} style={{
+                  marginBottom: '20px',
+                  padding: '15px',
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  borderLeft: '4px solid #dc2626'
+                }}>
+                  <h4>{type.replace('-', ' - ').toUpperCase()}</h4>
+                  <p style={{ fontSize: '12px', color: '#666' }}>
+                    Occurred {occurrences.length} times
+                  </p>
+
+                  <div style={{ marginTop: '10px' }}>
+                    {occurrences.map((occ, idx) => (
+                      <div key={idx} style={{
+                        padding: '8px',
+                        marginBottom: '8px',
+                        backgroundColor: '#fef2f2',
+                        borderRadius: '4px',
+                        fontSize: '13px'
+                      }}>
+                        <strong>{new Date(occ.date).toLocaleString()}</strong>
+                        <br />
+                        File: {occ.file}
+                        <br />
+                        {occ.description}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          );
+        };
+
+        // Pattern Recognition Engine
+        const PatternDetector = {
+          async analyze(currentAnalysis, historicalAnalyses) {
+            const patterns = {
+              recurring: [],
+              emerging: [],
+              resolved: []
+            };
+
+            // Find recurring defects
+            const defectCounts = {};
+            historicalAnalyses.forEach(analysis => {
+              if (analysis.defects) {
+                analysis.defects.forEach(defect => {
+                  const key = `${defect.type}|${defect.description}`;
+                  defectCounts[key] = (defectCounts[key] || 0) + 1;
+                });
+              }
+            });
+
+            // Identify patterns
+            Object.entries(defectCounts).forEach(([key, count]) => {
+              if (count >= 3) {
+                const [type, description] = key.split('|');
+                patterns.recurring.push({
+                  type,
+                  description,
+                  frequency: count,
+                  firstSeen: this.findFirstOccurrence(type, description, historicalAnalyses),
+                  lastSeen: this.findLastOccurrence(type, description, historicalAnalyses),
+                  recommendation: this.generateRecommendation(type, description, count)
+                });
+              }
+            });
+
+            return patterns;
+          },
+
+          findFirstOccurrence(type, description, analyses) {
+            for (let analysis of analyses) {
+              if (analysis.defects) {
+                const found = analysis.defects.find(d => d.type === type && d.description === description);
+                if (found) return analysis.timestamp;
+              }
+            }
+            return null;
+          },
+
+          findLastOccurrence(type, description, analyses) {
+            for (let i = analyses.length - 1; i >= 0; i--) {
+              if (analyses[i].defects) {
+                const found = analyses[i].defects.find(d => d.type === type && d.description === description);
+                if (found) return analyses[i].timestamp;
+              }
+            }
+            return null;
+          },
+
+          generateRecommendation(type, description, frequency) {
+            const recommendations = {
+              'Missing Statutory Reference': `After ${frequency} occurrences, consider creating a checklist template that includes all required statutory references for this document type.`,
+              'Mixed Mandatory/Discretionary Language': `This language ambiguity has appeared ${frequency} times. Recommend standardizing document language to use either "must/shall" OR "may" consistently, with clear section separation.`,
+              'Insufficient Detail': `Documents consistently lack detail. Create minimum content guidelines specifying required sections and minimum line/word counts.`,
+              'Acknowledged Defect': `Errors acknowledged ${frequency} times suggests a review process gap. Implement mandatory peer review before document finalization.`,
+              'Missing Primary Legislation': `After ${frequency} occurrences, consider creating a checklist template that includes all required statutory references for this document type.`,
+              'Insufficient Substantive Content': `Documents consistently lack detail. Create minimum content guidelines specifying required sections and minimum line/word counts.`
+            };
+
+            return recommendations[type] || `Recurring issue (${frequency}x). Systematic review and process improvement recommended.`;
+          }
+        };
+
+        // Helper function: Get color for severity
+        const getColorForSeverity = (severity) => {
+          const colors = {
+            'critical': '#fecaca',
+            'high': '#fed7aa',
+            'medium': '#fef3c7',
+            'low': '#dbeafe'
+          };
+          return colors[severity] || '#f3f4f6';
+        };
+
+        // Helper function: Find defects related to a reference
+        const findDefectsForReference = (reference, analysis) => {
+          const related = [];
+          const refLower = reference.toLowerCase();
+
+          ['fileA', 'fileB'].forEach(fileKey => {
+            if (analysis.phaseA && analysis.phaseA[fileKey]) {
+              analysis.phaseA[fileKey].forEach(preset => {
+                const potentialIssues = preset.findings.potentialIssues;
+                const issues = potentialIssues.issues || potentialIssues;
+
+                if (Array.isArray(issues)) {
+                  issues.forEach(issue => {
+                    if (issue.description && issue.description.toLowerCase().includes(refLower)) {
+                      related.push({
+                        type: issue.type,
+                        severity: issue.severity,
+                        description: issue.description
+                      });
+                    }
+                  });
+                }
+              });
+            }
+          });
+
+          return related;
+        };
+
+        // Helper function: Build matrix
+        const buildMatrix = (analysis) => {
+          const matrix = [];
+
+          // Get all statutory references
+          const refs = [];
+          if (analysis.phaseA) {
+            ['fileA', 'fileB'].forEach(fileKey => {
+              if (analysis.phaseA[fileKey] && analysis.phaseA[fileKey][0] &&
+                  analysis.phaseA[fileKey][0].findings &&
+                  analysis.phaseA[fileKey][0].findings.legalReferences) {
+                refs.push(...analysis.phaseA[fileKey][0].findings.legalReferences);
+              }
+            });
+          }
+
+          // Remove duplicates
+          const uniqueRefs = [];
+          const seen = new Set();
+          refs.forEach(ref => {
+            const key = `${ref.type}:${ref.text}`.toLowerCase();
+            if (!seen.has(key)) {
+              seen.add(key);
+              uniqueRefs.push(ref);
+            }
+          });
+
+          uniqueRefs.forEach(ref => {
+            const relatedDefects = findDefectsForReference(ref.text, analysis);
+            const highSeverity = relatedDefects.filter(d =>
+              d.severity === 'high' || d.severity === 'critical'
+            );
+            const compliant = highSeverity.length === 0;
+
+            matrix.push({
+              statute: ref.text,
+              section: ref.type,
+              defects: relatedDefects.slice(0, 5), // Limit to 5 for display
+              compliant: compliant,
+              action: determineAction(relatedDefects, compliant)
+            });
+          });
+
+          return matrix;
+        };
+
+        // Helper function: Determine action
+        const determineAction = (defects, compliant) => {
+          if (compliant) return 'No action required - monitoring';
+
+          const highSeverity = defects.filter(d =>
+            d.severity === 'high' || d.severity === 'critical'
+          );
+          if (highSeverity.length > 0) {
+            return '⚠️ URGENT: Review and address high-severity issues immediately';
+          }
+
+          return '📋 Review medium/low issues and plan remediation';
+        };
+
+        // Helper function: Detect patterns from historical data
+        const detectPatterns = (historicalAnalyses) => {
+          if (!historicalAnalyses || historicalAnalyses.length === 0) return [];
+
+          const patternCounts = {};
+
+          historicalAnalyses.forEach(analysis => {
+            if (analysis.defects) {
+              analysis.defects.forEach(defect => {
+                const key = `${defect.type}|${defect.severity}`;
+                if (!patternCounts[key]) {
+                  patternCounts[key] = {
+                    type: defect.type,
+                    severity: defect.severity,
+                    count: 0,
+                    descriptions: []
+                  };
+                }
+                patternCounts[key].count++;
+                if (patternCounts[key].descriptions.length < 3) {
+                  patternCounts[key].descriptions.push(defect.description);
+                }
+              });
+            }
+          });
+
+          return Object.values(patternCounts).filter(p => p.count >= 2);
+        };
+
+        // Cross-Reference Matrix Component
+        const CrossReferenceMatrix = ({ analysis }) => {
+          const matrix = React.useMemo(() => buildMatrix(analysis), [analysis]);
+
+          if (!matrix || matrix.length === 0) {
+            return (
+              <div style={{ padding: '20px', backgroundColor: '#f9fafb', textAlign: 'center' }}>
+                <p style={{ color: '#6b7280' }}>No statutory references found to create cross-reference matrix.</p>
+              </div>
+            );
+          }
+
+          return (
+            <div style={{ padding: '20px' }}>
+              <h3>🔗 Cross-Reference Matrix</h3>
+              <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '16px' }}>
+                Relationships between statutory references and identified defects
+              </p>
+
+              <table style={{
+                width: '100%',
+                borderCollapse: 'collapse',
+                backgroundColor: 'white',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                borderRadius: '8px',
+                overflow: 'hidden'
+              }}>
+                <thead>
+                  <tr style={{ backgroundColor: '#f3f4f6' }}>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Statutory Reference</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Related Defects</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Compliance Status</th>
+                    <th style={{
+                      padding: '12px',
+                      textAlign: 'left',
+                      borderBottom: '2px solid #e5e7eb',
+                      fontWeight: '600',
+                      fontSize: '14px'
+                    }}>Action Required</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {matrix.map((row, idx) => (
+                    <tr key={idx} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        <strong style={{ fontSize: '14px' }}>{row.statute}</strong>
+                        <br />
+                        <span style={{ fontSize: '12px', color: '#666' }}>
+                          {row.section}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        {row.defects.length > 0 ? (
+                          row.defects.map((d, i) => (
+                            <div key={i} style={{
+                              padding: '4px 8px',
+                              marginBottom: '4px',
+                              backgroundColor: getColorForSeverity(d.severity),
+                              borderRadius: '4px',
+                              fontSize: '12px',
+                              border: '1px solid #e5e7eb'
+                            }}>
+                              <strong>[{d.severity.toUpperCase()}]</strong> {d.type}
+                            </div>
+                          ))
+                        ) : (
+                          <span style={{ fontSize: '12px', color: '#6b7280' }}>No related defects</span>
+                        )}
+                      </td>
+                      <td style={{ padding: '12px', verticalAlign: 'top' }}>
+                        <span style={{
+                          padding: '4px 12px',
+                          borderRadius: '12px',
+                          fontSize: '12px',
+                          fontWeight: '600',
+                          backgroundColor: row.compliant ? '#d1fae5' : '#fee2e2',
+                          color: row.compliant ? '#065f46' : '#991b1b'
+                        }}>
+                          {row.compliant ? '✅ Compliant' : '⚠️ Non-Compliant'}
+                        </span>
+                      </td>
+                      <td style={{ padding: '12px', fontSize: '13px', verticalAlign: 'top' }}>
+                        {row.action}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        };
+
+        // Contextual Intelligence Enhancement
+        const ContextualIntelligence = {
+          async enhanceFindings(currentAnalysis, historicalAnalyses) {
+            return {
+              ...currentAnalysis,
+              contextualInsights: {
+                // Compare current to historical average
+                severity: this.compareSeverity(currentAnalysis, historicalAnalyses),
+
+                // Identify if issues are worsening or improving
+                trend: this.analyzeTrend(currentAnalysis, historicalAnalyses),
+
+                // Suggest specific actions based on patterns
+                recommendations: this.generateSmartRecommendations(currentAnalysis, historicalAnalyses),
+
+                // Highlight new issue types never seen before
+                novelIssues: this.identifyNovelIssues(currentAnalysis, historicalAnalyses)
+              }
+            };
+          },
+
+          countSeverity(analysis, severity) {
+            let count = 0;
+            if (analysis.findings && analysis.findings.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (analysis.findings.phaseA[fileKey]) {
+                  analysis.findings.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      count += issues.filter(i => i.severity === severity).length;
+                    }
+                  });
+                }
+              });
+            } else if (analysis.defects) {
+              count = analysis.defects.filter(d => d.severity === severity).length;
+            }
+            return count;
+          },
+
+          compareSeverity(current, historical) {
+            if (!historical || historical.length === 0) {
+              return {
+                status: 'baseline',
+                message: 'This is your first analysis - establishing baseline metrics'
+              };
+            }
+
+            const currentHigh = this.countSeverity({ findings: current }, 'high');
+            const currentCritical = this.countSeverity({ findings: current }, 'critical');
+            const currentTotal = currentHigh + currentCritical;
+
+            const avgHigh = historical.reduce((sum, a) =>
+              sum + this.countSeverity(a, 'high'), 0) / historical.length;
+            const avgCritical = historical.reduce((sum, a) =>
+              sum + this.countSeverity(a, 'critical'), 0) / historical.length;
+            const avgTotal = avgHigh + avgCritical;
+
+            if (avgTotal === 0) {
+              return {
+                status: 'baseline',
+                message: 'Insufficient historical data for comparison'
+              };
+            }
+
+            if (currentTotal > avgTotal * 1.5) {
+              return {
+                status: 'worse',
+                message: `⚠️ Current analysis shows ${Math.round((currentTotal / avgTotal - 1) * 100)}% more high-severity issues than historical average`,
+                data: { current: currentTotal, average: avgTotal.toFixed(1) }
+              };
+            } else if (currentTotal < avgTotal * 0.5 && avgTotal > 0) {
+              return {
+                status: 'better',
+                message: `✅ Significant improvement: ${Math.round((1 - currentTotal / avgTotal) * 100)}% fewer high-severity issues`,
+                data: { current: currentTotal, average: avgTotal.toFixed(1) }
+              };
+            }
+
+            return {
+              status: 'stable',
+              message: 'Issue severity within normal range',
+              data: { current: currentTotal, average: avgTotal.toFixed(1) }
+            };
+          },
+
+          analyzeTrend(current, historical) {
+            if (!historical || historical.length < 2) {
+              return {
+                direction: 'insufficient_data',
+                message: 'Need at least 2 historical analyses to detect trends'
+              };
+            }
+
+            // Look at last 5 analyses
+            const recent = historical.slice(-5);
+            const counts = recent.map(a => this.countSeverity(a, 'high') + this.countSeverity(a, 'critical'));
+
+            // Simple linear trend
+            const trend = counts[counts.length - 1] - counts[0];
+
+            if (trend > 2) {
+              return {
+                direction: 'worsening',
+                message: '📈 Issues increasing over recent analyses - systematic review recommended',
+                data: { change: trend, samples: counts.length }
+              };
+            } else if (trend < -2) {
+              return {
+                direction: 'improving',
+                message: '📉 Issues decreasing - current processes appear effective',
+                data: { change: trend, samples: counts.length }
+              };
+            }
+
+            return {
+              direction: 'stable',
+              message: 'No significant trend detected',
+              data: { change: trend, samples: counts.length }
+            };
+          },
+
+          generateSmartRecommendations(current, historical) {
+            const recommendations = [];
+
+            // Get current issues
+            const currentIssues = [];
+            if (current.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (current.phaseA[fileKey]) {
+                  current.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      currentIssues.push(...issues);
+                    }
+                  });
+                }
+              });
+            }
+
+            // Check for recurring high-severity issues
+            const highSeverity = currentIssues.filter(i => i.severity === 'high' || i.severity === 'critical');
+            if (highSeverity.length > 3) {
+              recommendations.push({
+                priority: 'high',
+                category: 'Quality Control',
+                recommendation: 'Multiple high-severity issues detected. Consider implementing a document review checklist before submission.',
+                impact: 'Reduce critical defects by 40-60%'
+              });
+            }
+
+            // Check for missing statutory references
+            const missingRefs = currentIssues.filter(i =>
+              i.type && (i.type.includes('Missing') || i.type.includes('Statute'))
+            );
+            if (missingRefs.length > 0) {
+              recommendations.push({
+                priority: 'medium',
+                category: 'Statutory Compliance',
+                recommendation: 'Create a statutory reference template for this document type to ensure all required references are included.',
+                impact: 'Improve compliance by 30-50%'
+              });
+            }
+
+            // Check for procedural issues
+            const proceduralIssues = currentIssues.filter(i =>
+              i.type && (i.type.includes('Procedural') || i.type.includes('Fairness'))
+            );
+            if (proceduralIssues.length > 0) {
+              recommendations.push({
+                priority: 'high',
+                category: 'Procedural Compliance',
+                recommendation: 'Review procedural requirements and implement mandatory peer review for procedural fairness.',
+                impact: 'Reduce jurisdictional errors'
+              });
+            }
+
+            if (recommendations.length === 0) {
+              recommendations.push({
+                priority: 'low',
+                category: 'Monitoring',
+                recommendation: 'Continue current document preparation processes - quality metrics are within acceptable range.',
+                impact: 'Maintain current standards'
+              });
+            }
+
+            return recommendations;
+          },
+
+          identifyNovelIssues(current, historical) {
+            if (!historical || historical.length === 0) {
+              return [];
+            }
+
+            // Get all historical issue types
+            const historicalTypes = new Set();
+            historical.forEach(analysis => {
+              if (analysis.defects) {
+                analysis.defects.forEach(defect => {
+                  historicalTypes.add(defect.type);
+                });
+              }
+            });
+
+            // Find current issues that are new
+            const novelIssues = [];
+            if (current.phaseA) {
+              ['fileA', 'fileB'].forEach(fileKey => {
+                if (current.phaseA[fileKey]) {
+                  current.phaseA[fileKey].forEach(preset => {
+                    const issues = preset.findings.potentialIssues.issues || preset.findings.potentialIssues;
+                    if (Array.isArray(issues)) {
+                      issues.forEach(issue => {
+                        if (!historicalTypes.has(issue.type)) {
+                          novelIssues.push({
+                            type: issue.type,
+                            severity: issue.severity,
+                            description: issue.description,
+                            preset: preset.preset
+                          });
+                        }
+                      });
+                    }
+                  });
+                }
+              });
+            }
+
+            return novelIssues;
+          }
         };
 
         const ForensicLegalAnalyzer = () => {
@@ -49,8 +1138,28 @@
           const [currentPhase, setCurrentPhase] = useState('');
           const [analysisResults, setAnalysisResults] = useState(null);
           const [expandedSections, setExpandedSections] = useState({});
+          const [historicalAnalyses, setHistoricalAnalyses] = useState([]);
+          const [detectedPatterns, setDetectedPatterns] = useState(null);
+          const [contextualInsights, setContextualInsights] = useState(null);
+          const [uploadProgress, setUploadProgress] = useState({ fileA: 0, fileB: 0 });
+          const [isUploading, setIsUploading] = useState({ fileA: false, fileB: false });
+          const [analysisProgress, setAnalysisProgress] = useState(0);
           const fileInputA = useRef(null);
           const fileInputB = useRef(null);
+
+          // Initialize persistent storage on component mount
+          React.useEffect(() => {
+            AnalysisMemory.init().then(() => {
+              console.log('Persistent Intelligence Layer initialized');
+              // Load historical analyses
+              return AnalysisMemory.getAllAnalyses();
+            }).then(analyses => {
+              setHistoricalAnalyses(analyses || []);
+              console.log(`Loaded ${analyses?.length || 0} historical analyses`);
+            }).catch(err => {
+              console.error('Failed to initialize storage:', err);
+            });
+          }, []);
 
           const interpretivePresets = [
             {
@@ -95,15 +1204,180 @@
             }
           ];
 
+          // Victorian Law Document Type Classifier
+          const classifyDocumentType = (filename, content) => {
+            const types = {
+              'Statutory Legislation': /\bact\s+\d{4}\b|primary legislation|statute/i,
+              'Delegated Legislation': /\bregulation|rules|order|instrument\b/i,
+              'Victoria Police Manual': /\bvictoria police|vpm|police manual|operational procedure/i,
+              'Disclosure Document': /\bdisclosure|discovery|prosecution brief/i,
+              'Evidence Exhibit': /\bexhibit|evidentiary material|physical evidence/i,
+              'Statement': /\bstatement of|witness statement|affidavit|statutory declaration/i,
+              'Court Order': /\border of the court|court order|judicial order/i,
+              'Evidentiary Certificate': /\bevidentiary certificate|certificate of|s\.\s*\d+\s+certificate/i,
+              'Summons': /\bsummons|witness summons|subpoena/i,
+              'Charge Sheet': /\bcharge sheet|charges|indictment|complaint/i,
+              'Submission': /\bsubmission|written submission|legal submission/i,
+              'Deposition': /\bdeposition|committal|preliminary hearing/i,
+              'Case Law': /\b[A-Z][a-z]+\s+v\s+[A-Z][a-z]+|\[\d{4}\]|CLR|VR|VSC/,
+              'Legal Narrative': /\bnarrativ|chronolog|fact pattern|sequence of events/i,
+              'Court Documentation': /\bfiling|pleading|court document|notice of/i
+            };
+
+            for (const [type, pattern] of Object.entries(types)) {
+              if (pattern.test(content) || pattern.test(filename)) {
+                return type;
+              }
+            }
+            return 'General Legal Document';
+          };
+
+          // Victorian Governing Framework Identifier
+          const identifyVictorianFramework = (content, documentType) => {
+            const framework = {
+              primaryLegislation: [],
+              subordinateInstrumentation: [],
+              jurisdiction: 'Victoria, Australia',
+              governingCourts: [],
+              relevantPoliceProcedures: [],
+              applicableEvidentRules: []
+            };
+
+            // Victorian Primary Legislation
+            const vicActPatterns = [
+              /Criminal\s+Procedure\s+Act\s+2009/gi,
+              /Evidence\s+Act\s+2008/gi,
+              /Crimes\s+Act\s+1958/gi,
+              /Charter\s+of\s+Human\s+Rights\s+and\s+Responsibilities\s+Act\s+2006/gi,
+              /Victoria\s+Police\s+Act\s+2013/gi,
+              /Sentencing\s+Act\s+1991/gi,
+              /Children,\s+Youth\s+and\s+Families\s+Act\s+2005/gi,
+              /Supreme\s+Court\s+Act\s+1986/gi,
+              /Magistrates[\'']?\s+Court\s+Act\s+1989/gi,
+              /County\s+Court\s+Act\s+1958/gi,
+              /Bail\s+Act\s+1977/gi,
+              /Confiscation\s+Act\s+1997/gi
+            ];
+
+            vicActPatterns.forEach(pattern => {
+              const matches = content.match(pattern);
+              if (matches) {
+                framework.primaryLegislation.push(...new Set(matches));
+              }
+            });
+
+            // Victorian Subordinate Instruments
+            const vicRegPatterns = [
+              /Criminal\s+Procedure\s+Regulations/gi,
+              /Evidence\s+\(Miscellaneous\s+Provisions\s*\)\s+Regulations/gi,
+              /Victoria\s+Police\s+Regulations/gi,
+              /Supreme\s+Court\s+\(General\s+Civil\s+Procedure\s*\)\s+Rules/gi,
+              /Magistrates[\'']?\s+Court\s+General\s+Civil\s+Procedure\s+Rules/gi
+            ];
+
+            vicRegPatterns.forEach(pattern => {
+              const matches = content.match(pattern);
+              if (matches) {
+                framework.subordinateInstrumentation.push(...new Set(matches));
+              }
+            });
+
+            // Victorian Courts
+            const courtPatterns = [
+              /Supreme\s+Court\s+of\s+Victoria/gi,
+              /County\s+Court\s+of\s+Victoria/gi,
+              /Magistrates[\'']?\s+Court\s+of\s+Victoria/gi,
+              /Children[\'']?s\s+Court\s+of\s+Victoria/gi,
+              /Coroners\s+Court\s+of\s+Victoria/gi
+            ];
+
+            courtPatterns.forEach(pattern => {
+              const matches = content.match(pattern);
+              if (matches) {
+                framework.governingCourts.push(...new Set(matches));
+              }
+            });
+
+            // Victorian Police Procedures
+            if (documentType === 'Victoria Police Manual' || content.match(/victoria\s+police/i)) {
+              const vpmPatterns = [
+                /VPM\s+[A-Z0-9-]+/g,
+                /Operational\s+Procedure\s+\d+/gi,
+                /Victoria\s+Police\s+Manual\s+Section\s+\d+/gi
+              ];
+
+              vpmPatterns.forEach(pattern => {
+                const matches = content.match(pattern);
+                if (matches) {
+                  framework.relevantPoliceProcedures.push(...new Set(matches));
+                }
+              });
+            }
+
+            // Victorian Evidence Rules
+            const evidenceRules = [
+              /s\.\s*\d+\s+Evidence\s+Act/gi,
+              /section\s+\d+\s+of\s+the\s+Evidence\s+Act/gi,
+              /Division\s+\d+\s+of\s+Part\s+\d+\s+of\s+the\s+Evidence\s+Act/gi
+            ];
+
+            evidenceRules.forEach(pattern => {
+              const matches = content.match(pattern);
+              if (matches) {
+                framework.applicableEvidentRules.push(...new Set(matches));
+              }
+            });
+
+            return framework;
+          };
+
           const handleFileUpload = async (file, fileKey) => {
             if (!file) return;
 
+            setIsUploading(prev => ({ ...prev, [fileKey]: true }));
+            setUploadProgress(prev => ({ ...prev, [fileKey]: 0 }));
+
             const reader = new FileReader();
+
+            reader.onprogress = (e) => {
+              if (e.lengthComputable) {
+                const progress = Math.round((e.loaded / e.total) * 100);
+                setUploadProgress(prev => ({ ...prev, [fileKey]: progress }));
+              }
+            };
+
             reader.onload = (e) => {
               const content = e.target.result;
-              setFiles(prev => ({ ...prev, [fileKey]: file }));
+
+              // Classify document and identify framework
+              const documentType = classifyDocumentType(file.name, content);
+              const framework = identifyVictorianFramework(content, documentType);
+
+              // Enhanced file metadata
+              const enhancedFile = {
+                ...file,
+                documentType: documentType,
+                framework: framework,
+                uploadTimestamp: new Date().toISOString()
+              };
+
+              setFiles(prev => ({ ...prev, [fileKey]: enhancedFile }));
               setFileContents(prev => ({ ...prev, [fileKey]: content }));
+              setUploadProgress(prev => ({ ...prev, [fileKey]: 100 }));
+
+              setTimeout(() => {
+                setIsUploading(prev => ({ ...prev, [fileKey]: false }));
+              }, 300);
+
+              console.log(`File ${fileKey} classified as: ${documentType}`);
+              console.log(`Governing framework:`, framework);
             };
+
+            reader.onerror = () => {
+              setIsUploading(prev => ({ ...prev, [fileKey]: false }));
+              setUploadProgress(prev => ({ ...prev, [fileKey]: 0 }));
+            };
+
             reader.readAsText(file);
           };
 
@@ -133,8 +1407,10 @@
           const simulateAnalysis = async () => {
             setAnalysisState('analyzing');
             setAnalysisResults(null);
+            setAnalysisProgress(0);
 
             setCurrentPhase('Phase A: Multi-Preset Forensic Examination');
+            setAnalysisProgress(10);
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const phaseAResults = {
@@ -148,38 +1424,322 @@
               }))
             };
 
+            setAnalysisProgress(40);
             setCurrentPhase('Phase B: Statutory Framework Identification & Cross-Reference Analysis');
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const phaseBResults = performCrossReference(phaseAResults);
+            setAnalysisProgress(65);
 
             setCurrentPhase('Phase C: Statutory Interpretation & Legislative Purpose Analysis');
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const phaseCResults = performStatutoryInterpretation(phaseAResults, phaseBResults);
+            setAnalysisProgress(80);
 
-            setAnalysisResults({
+            const finalResults = {
               phaseA: phaseAResults,
               phaseB: phaseBResults,
               phaseC: phaseCResults,
               summary: generateExecutiveSummary(phaseAResults, phaseBResults, phaseCResults)
-            });
+            };
 
+            setAnalysisResults(finalResults);
+            setAnalysisProgress(90);
+
+            // Save analysis to persistent storage
+            await AnalysisMemory.saveAnalysis(finalResults, files);
+
+            // Reload historical analyses and detect patterns
+            const updatedAnalyses = await AnalysisMemory.getAllAnalyses();
+            setHistoricalAnalyses(updatedAnalyses || []);
+
+            setAnalysisProgress(95);
+
+            // Run pattern detection
+            if (updatedAnalyses && updatedAnalyses.length > 0) {
+              const patterns = await PatternDetector.analyze(finalResults, updatedAnalyses);
+              setDetectedPatterns(patterns);
+              console.log('Pattern detection completed:', patterns);
+
+              // Run contextual intelligence analysis
+              const insights = await ContextualIntelligence.enhanceFindings(finalResults, updatedAnalyses);
+              setContextualInsights(insights.contextualInsights);
+              console.log('Contextual intelligence analysis completed:', insights.contextualInsights);
+            }
+
+            setAnalysisProgress(100);
             setAnalysisState('complete');
             setCurrentPhase('Analysis Complete');
+          };
+
+          // Word-by-Word Linguistic Inspection Engine
+          const performLinguisticInspection = (content, documentType, framework) => {
+            const lines = content.split('\n');
+            const linguisticReport = {
+              totalWords: 0,
+              totalLines: lines.length,
+              lineByLineAnalysis: [],
+              wordAccuracyIssues: [],
+              grammaticalDefects: [],
+              legalTerminologyIssues: [],
+              victorianComplianceDefects: []
+            };
+
+            lines.forEach((line, lineIndex) => {
+              const lineNumber = lineIndex + 1;
+              const words = line.trim().split(/\s+/).filter(w => w.length > 0);
+              linguisticReport.totalWords += words.length;
+
+              const lineAnalysis = {
+                lineNumber: lineNumber,
+                content: line,
+                wordCount: words.length,
+                issues: [],
+                wordByWordInspection: []
+              };
+
+              // Word-by-word inspection
+              words.forEach((word, wordIndex) => {
+                const wordPosition = wordIndex + 1;
+                const cleanWord = word.replace(/[^\w\s'-]/g, '').toLowerCase();
+
+                const wordInspection = {
+                  position: wordPosition,
+                  word: word,
+                  issues: []
+                };
+
+                // Victorian legal terminology accuracy
+                const victorianTermIssues = checkVictorianLegalTerminology(word, cleanWord, documentType);
+                if (victorianTermIssues.length > 0) {
+                  wordInspection.issues.push(...victorianTermIssues);
+                  linguisticReport.legalTerminologyIssues.push({
+                    line: lineNumber,
+                    word: word,
+                    position: wordPosition,
+                    issues: victorianTermIssues
+                  });
+                }
+
+                // Check for spelling and accuracy
+                const spellingIssues = checkLegalSpelling(word, cleanWord);
+                if (spellingIssues) {
+                  wordInspection.issues.push(spellingIssues);
+                  linguisticReport.wordAccuracyIssues.push({
+                    line: lineNumber,
+                    word: word,
+                    position: wordPosition,
+                    issue: spellingIssues
+                  });
+                }
+
+                if (wordInspection.issues.length > 0) {
+                  lineAnalysis.wordByWordInspection.push(wordInspection);
+                }
+              });
+
+              // Line-level checks
+              const lineIssues = performLineInspection(line, lineNumber, documentType, framework);
+              lineAnalysis.issues.push(...lineIssues);
+
+              if (lineIssues.length > 0) {
+                linguisticReport.grammaticalDefects.push(...lineIssues.map(issue => ({
+                  line: lineNumber,
+                  content: line,
+                  issue: issue
+                })));
+              }
+
+              linguisticReport.lineByLineAnalysis.push(lineAnalysis);
+            });
+
+            return linguisticReport;
+          };
+
+          // Victorian Legal Terminology Checker
+          const checkVictorianLegalTerminology = (originalWord, cleanWord, documentType) => {
+            const issues = [];
+
+            // Victorian-specific terminology that must be accurate
+            const victorianTerms = {
+              'informant': { correct: 'informant', common_errors: ['informent', 'informent'], context: 'Victorian police terminology' },
+              'indictable': { correct: 'indictable', common_errors: ['indicatable', 'indictible'], context: 'Victorian criminal law' },
+              'committals': { correct: 'committals', common_errors: ['commitals', 'commital'], context: 'Victorian court procedure' },
+              'magistrate': { correct: 'magistrate', common_errors: ['magistrait', 'magistrat'], context: 'Victorian judicial officer' },
+              'summons': { correct: 'summons', common_errors: ['summon', 'summonses'], context: 'Victorian court process' },
+              'pursuant': { correct: 'pursuant', common_errors: ['persuan', 'persuant'], context: 'Legal terminology' },
+              'defence': { correct: 'defence', american: 'defense', context: 'Australian spelling (not defense)' },
+              'practitioner': { correct: 'practitioner', common_errors: ['practisioner', 'practioner'], context: 'Legal practitioner' },
+              'recognised': { correct: 'recognised', american: 'recognized', context: 'Australian spelling (not recognized)' },
+              'summarised': { correct: 'summarised', american: 'summarized', context: 'Australian spelling (not summarized)' }
+            };
+
+            for (const [term, info] of Object.entries(victorianTerms)) {
+              if (info.common_errors && info.common_errors.includes(cleanWord)) {
+                issues.push({
+                  type: 'Victorian Legal Terminology Error',
+                  severity: 'high',
+                  description: `"${originalWord}" should be "${info.correct}" in ${info.context}`,
+                  correct: info.correct,
+                  context: info.context
+                });
+              }
+
+              // Check for American spelling in Victorian context
+              if (info.american && cleanWord === info.american) {
+                issues.push({
+                  type: 'Australian Spelling Required',
+                  severity: 'medium',
+                  description: `"${originalWord}" uses American spelling. Victorian documents require "${info.correct}"`,
+                  correct: info.correct,
+                  context: info.context
+                });
+              }
+            }
+
+            return issues;
+          };
+
+          // Legal Spelling Checker
+          const checkLegalSpelling = (word, cleanWord) => {
+            const commonLegalMisspellings = {
+              'achive': 'achieve',
+              'admissable': 'admissible',
+              'alledge': 'allege',
+              'arguement': 'argument',
+              'benificial': 'beneficial',
+              'calender': 'calendar',
+              'comitted': 'committed',
+              'complience': 'compliance',
+              'defendent': 'defendant',
+              'discreation': 'discretion',
+              'existance': 'existence',
+              'fourty': 'forty',
+              'gaurd': 'guard',
+              'guidence': 'guidance',
+              'independant': 'independent',
+              'judgement': 'judgment',  // Note: In Australian legal context, both are acceptable
+              'liason': 'liaison',
+              'maintainance': 'maintenance',
+              'occassion': 'occasion',
+              'occurance': 'occurrence',
+              'persue': 'pursue',
+              'preceed': 'precede',
+              'priviledge': 'privilege',
+              'proceedure': 'procedure',
+              'recieve': 'receive',
+              'seperate': 'separate',
+              'statutory': 'statuary'  // Common typo
+            };
+
+            if (commonLegalMisspellings[cleanWord]) {
+              return {
+                type: 'Spelling Error',
+                severity: 'medium',
+                description: `"${word}" appears to be misspelled. Correct spelling: "${commonLegalMisspellings[cleanWord]}"`,
+                suggestion: commonLegalMisspellings[cleanWord]
+              };
+            }
+
+            return null;
+          };
+
+          // Line-Level Inspection
+          const performLineInspection = (line, lineNumber, documentType, framework) => {
+            const issues = [];
+
+            // Check for incomplete statutory references
+            if (/section\s+\d+\s*$/i.test(line) && !line.includes('Act')) {
+              issues.push({
+                type: 'Incomplete Statutory Reference',
+                severity: 'high',
+                description: 'Section reference without specifying the Act',
+                defect: 'Section reference incomplete - must specify governing Act'
+              });
+            }
+
+            // Check for incorrect conjunction usage in legal lists
+            if (/,\s+and\s+,/.test(line)) {
+              issues.push({
+                type: 'Grammatical Error',
+                severity: 'low',
+                description: 'Incorrect comma placement with conjunction',
+                defect: 'Oxford comma usage inconsistent or incorrect'
+              });
+            }
+
+            // Check for passive voice in Victoria Police procedural documents
+            if (documentType === 'Victoria Police Manual' && /was\s+\w+ed\b|were\s+\w+ed\b/i.test(line)) {
+              issues.push({
+                type: 'Passive Voice in Procedural Document',
+                severity: 'low',
+                description: 'Victoria Police procedures should use active voice',
+                defect: 'Consider rephrasing in active voice for clarity'
+              });
+            }
+
+            // Check for ambiguous temporal references
+            if (/as soon as possible|ASAP|promptly|immediately/i.test(line)) {
+              issues.push({
+                type: 'Vague Temporal Reference',
+                severity: 'medium',
+                description: 'Imprecise time requirement - Victorian statutory compliance requires specific timeframes',
+                defect: 'Replace with specific timeframe (e.g., "within 7 days", "within 24 hours")'
+              });
+            }
+
+            // Check for missing mandatory elements in statements
+            if (documentType === 'Statement' && lineNumber === 1) {
+              if (!/statement\s+of/i.test(line)) {
+                issues.push({
+                  type: 'Missing Statement Header',
+                  severity: 'high',
+                  description: 'Statement documents should begin with "Statement of [name]"',
+                  defect: 'Required header missing - Victoria Police disclosure requirements'
+                });
+              }
+            }
+
+            // Check for incorrect court references
+            const incorrectCourtRefs = [
+              { pattern: /Magistrates Court(?!\s+of\s+Victoria)/gi, correct: 'Magistrates\' Court of Victoria' },
+              { pattern: /Supreme Court(?!\s+of\s+Victoria)/gi, correct: 'Supreme Court of Victoria' },
+              { pattern: /County Court(?!\s+of\s+Victoria)/gi, correct: 'County Court of Victoria' }
+            ];
+
+            incorrectCourtRefs.forEach(ref => {
+              if (ref.pattern.test(line)) {
+                issues.push({
+                  type: 'Incomplete Court Reference',
+                  severity: 'high',
+                  description: `Court reference should be "${ref.correct}" in Victorian documents`,
+                  defect: 'Full court name required for Victorian jurisdiction'
+                });
+              }
+            });
+
+            return issues;
           };
 
           const generateFindings = (content, preset) => {
             const words = content.split(/\s+/).filter(w => w.length > 0);
             const lines = content.split('\n').filter(l => l.trim().length > 0);
 
+            // Extract legal references first so we can pass them to issue identification
+            const legalReferences = extractLegalReferences(content);
+
+            // Perform comprehensive linguistic inspection
+            const linguisticInspection = performLinguisticInspection(content, 'General Legal Document', {});
+
             return {
               wordCount: words.length,
               lineCount: lines.length,
+              linguisticInspection: linguisticInspection,
               keyTermsIdentified: extractKeyTerms(content, preset),
               proceduralElements: identifyProceduralElements(content, preset),
-              legalReferences: extractLegalReferences(content),
-              potentialIssues: identifyPotentialIssues(content, preset),
+              legalReferences: legalReferences,
+              potentialIssues: identifyPotentialIssues(content, preset, legalReferences),
               contextualMarkers: extractContextualMarkers(content, preset)
             };
           };
@@ -191,7 +1751,6 @@
                                 'procedure', 'statutory', 'mandatory', 'discretionary', 'power'];
             
             const found = [];
-            const contentLower = content.toLowerCase();
             
             legalTerms.forEach(term => {
               const regex = new RegExp(`\\b${term}\\b`, 'gi');
@@ -246,33 +1805,299 @@
             return references.slice(0, 15);
           };
 
-          const identifyPotentialIssues = (content, preset) => {
+          // Enhanced issue identification with statutory compliance matrix
+          const identifyPotentialIssues = (content, preset, legalReferences = []) => {
             const issues = [];
-            
-            if (content.toLowerCase().includes('error') || content.toLowerCase().includes('incorrect')) {
-              issues.push({ severity: 'high', type: 'Acknowledged Error', description: 'Document contains reference to error or incorrect information' });
-            }
-            
-            if (!content.match(/section\s+\d+/i)) {
-              issues.push({ severity: 'medium', type: 'Missing Statutory Reference', description: 'No clear statutory references identified' });
-            }
-            
-            if (content.split('\n').length < 5) {
-              issues.push({ severity: 'low', type: 'Insufficient Detail', description: 'Document appears to lack substantive content' });
-            }
-            
-            const mustShallCount = (content.match(/\b(must|shall)\b/gi) || []).length;
-            const mayCount = (content.match(/\bmay\b/gi) || []).length;
-            
-            if (mustShallCount > 0 && mayCount > 0) {
-              issues.push({ 
-                severity: 'medium', 
-                type: 'Mixed Mandatory/Discretionary Language', 
-                description: `Document contains both mandatory (${mustShallCount}) and discretionary (${mayCount}) language - requires careful interpretation` 
+
+            // Extract statutory framework for this document
+            const primaryActs = legalReferences.filter(r => r.type === 'Act Citation');
+            const sectionRefs = legalReferences.filter(r => r.type === 'Section Reference');
+
+            // Category 1: CRITICAL STATUTORY DEFECTS (High Severity)
+
+            // 1.1 Acknowledged Errors or Corrections
+            const errorPatterns = /\b(error|incorrect|mistake|erroneously|wrongly|inadvertent|oversight)\b/gi;
+            const errorMatches = content.match(errorPatterns);
+            if (errorMatches && errorMatches.length > 0) {
+              issues.push({
+                severity: 'critical',
+                type: 'Acknowledged Defect',
+                category: 'Statutory Compliance',
+                description: `Document contains ${errorMatches.length} reference(s) to errors or incorrect information`,
+                evidence: errorMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'May invalidate reliance on document under s15AA Acts Interpretation Act',
+                weight: 10
               });
             }
-            
-            return issues;
+
+            // 1.2 Jurisdiction Issues
+            const jurisdictionPatterns = /\b(jurisdiction|ultra vires|beyond power|lack.*authority|void|invalid)\b/gi;
+            const jurisdictionMatches = content.match(jurisdictionPatterns);
+            if (jurisdictionMatches && jurisdictionMatches.length > 2) {
+              issues.push({
+                severity: 'critical',
+                type: 'Jurisdictional Defect',
+                category: 'Statutory Compliance',
+                description: 'Document raises potential jurisdictional or validity concerns',
+                evidence: jurisdictionMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'Jurisdictional defects may render decision void ab initio',
+                weight: 10
+              });
+            }
+
+            // 1.3 Procedural Fairness Violations
+            const fairnessPatterns = /\b(natural justice|procedural fairness|bias|denied.*opportunity|no.*hearing|unfair)\b/gi;
+            const fairnessMatches = content.match(fairnessPatterns);
+            if (fairnessMatches && fairnessMatches.length > 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Procedural Fairness Issue',
+                category: 'Statutory Compliance',
+                description: 'Document indicates potential breach of procedural fairness',
+                evidence: fairnessMatches.slice(0, 3).join(', '),
+                statutoryImpact: 'Breach of natural justice may constitute jurisdictional error',
+                weight: 9
+              });
+            }
+
+            // Category 2: STATUTORY REFERENCE DEFECTS (High-Medium Severity)
+
+            // 2.1 Missing Primary Legislation Reference
+            if (primaryActs.length === 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Missing Primary Legislation',
+                category: 'Statutory Framework',
+                description: 'No primary Act citations identified - cannot determine governing legislative framework',
+                statutoryImpact: 'Unable to assess compliance with enabling legislation',
+                weight: 8
+              });
+            }
+
+            // 2.2 Missing Section References
+            if (sectionRefs.length === 0 && content.length > 500) {
+              issues.push({
+                severity: 'medium',
+                type: 'Missing Specific Statutory Provisions',
+                category: 'Statutory Framework',
+                description: 'No specific section references identified despite substantive content',
+                statutoryImpact: 'Lack of specificity may indicate insufficient statutory basis',
+                weight: 6
+              });
+            }
+
+            // 2.3 Inconsistent Citation Format
+            const inconsistentCitations = checkCitationConsistency(content);
+            if (inconsistentCitations.length > 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Inconsistent Citation Format',
+                category: 'Statutory Framework',
+                description: 'Mixed or inconsistent citation formats detected',
+                evidence: inconsistentCitations.join('; '),
+                weight: 5
+              });
+            }
+
+            // Category 3: SUBORDINATE INSTRUMENT ISSUES (Medium Severity)
+
+            // 3.1 Identify subordinate instruments
+            const subordinateInstruments = identifySubordinateInstruments(content);
+            if (subordinateInstruments.regulations.length > 0 && primaryActs.length === 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Orphaned Subordinate Instrument',
+                category: 'Legislative Hierarchy',
+                description: `${subordinateInstruments.regulations.length} subordinate instrument(s) cited without parent Act`,
+                evidence: subordinateInstruments.regulations.slice(0, 3).join(', '),
+                statutoryImpact: 'Subordinate instruments must be read subject to enabling Act',
+                weight: 7
+              });
+            }
+
+            // 3.2 Regulation vs Act conflict indicators
+            const conflictPatterns = /\b(contrary to|inconsistent with|conflict|override|supersede)\b/gi;
+            const conflictMatches = content.match(conflictPatterns);
+            if (conflictMatches && subordinateInstruments.regulations.length > 0) {
+              issues.push({
+                severity: 'high',
+                type: 'Potential Instrument Conflict',
+                category: 'Legislative Hierarchy',
+                description: 'Potential conflict between subordinate and primary legislation',
+                evidence: conflictMatches.slice(0, 2).join(', '),
+                statutoryImpact: 'Subordinate instruments cannot override primary legislation',
+                weight: 8
+              });
+            }
+
+            // Category 4: MANDATORY VS DISCRETIONARY LANGUAGE (Medium-Low Severity)
+
+            const mustShallCount = (content.match(/\b(must|shall|required)\b/gi) || []).length;
+            const mayCount = (content.match(/\b(may|discretion|permitted)\b/gi) || []).length;
+            const couldCount = (content.match(/\b(could|might|possibly)\b/gi) || []).length;
+
+            // 4.1 Ambiguous mandatory obligations
+            if (mustShallCount > 0 && mayCount > 0) {
+              const ratio = mayCount / mustShallCount;
+              const severity = ratio > 0.5 ? 'medium' : 'low';
+              issues.push({
+                severity: severity,
+                type: 'Mixed Mandatory/Discretionary Language',
+                category: 'Interpretive Clarity',
+                description: `Document contains both mandatory (${mustShallCount}) and discretionary (${mayCount}) obligations`,
+                statutoryImpact: 'Mandatory obligations interpreted according to "must" vs "may" distinction',
+                weight: ratio > 0.5 ? 5 : 3
+              });
+            }
+
+            // 4.2 Weak or vague language in statutory context
+            if (couldCount > mustShallCount && mustShallCount > 0) {
+              issues.push({
+                severity: 'medium',
+                type: 'Vague Language in Statutory Context',
+                category: 'Interpretive Clarity',
+                description: `Predominance of uncertain language (${couldCount} instances) over mandatory obligations`,
+                weight: 4
+              });
+            }
+
+            // Category 5: EVIDENTIARY & PROCEDURAL SUFFICIENCY (Medium-Low Severity)
+
+            // 5.1 Insufficient factual detail
+            const lines = content.split('\n').filter(l => l.trim().length > 0);
+            const words = content.split(/\s+/).length;
+            if (lines.length < 5 && words < 100) {
+              issues.push({
+                severity: 'medium',
+                type: 'Insufficient Substantive Content',
+                category: 'Procedural Sufficiency',
+                description: `Document appears to lack substantive detail (${lines.length} lines, ${words} words)`,
+                statutoryImpact: 'Inadequate reasoning may constitute failure to discharge statutory duty',
+                weight: 6
+              });
+            }
+
+            // 5.2 Missing temporal references
+            const temporalMarkers = content.match(/\b(\d{1,2}\/\d{1,2}\/\d{2,4}|\d{4}-\d{2}-\d{2}|date|time|deadline|by|before|after|within \d+)\b/gi);
+            if (!temporalMarkers && content.length > 500) {
+              issues.push({
+                severity: 'low',
+                type: 'Missing Temporal References',
+                category: 'Procedural Sufficiency',
+                description: 'No specific dates or timeframes identified in substantive document',
+                weight: 3
+              });
+            }
+
+            // 5.3 Evidence markers
+            const evidenceMarkers = content.match(/\b(evidence|exhibit|annexure|attachment|schedule|appendix)\b/gi);
+            if (evidenceMarkers && evidenceMarkers.length > 3) {
+              const evidenceVerification = content.match(/\b(refer|attached|enclosed|provided)\b/gi);
+              if (!evidenceVerification || evidenceVerification.length < evidenceMarkers.length) {
+                issues.push({
+                  severity: 'medium',
+                  type: 'Potential Missing Evidence',
+                  category: 'Procedural Sufficiency',
+                  description: `${evidenceMarkers.length} evidence references but insufficient verification of attachment`,
+                  weight: 5
+                });
+              }
+            }
+
+            // Category 6: INTERPRETIVE PRINCIPLES (Low-Medium Severity)
+
+            // 6.1 Specific vs General provisions (generalia specialibus non derogant)
+            const generalTerms = content.match(/\b(general|overall|broadly|in general|generally)\b/gi);
+            const specificTerms = content.match(/\b(specific|specifically|particular|precisely|expressly)\b/gi);
+            if (generalTerms && specificTerms && generalTerms.length > specificTerms.length * 2) {
+              issues.push({
+                severity: 'low',
+                type: 'Predominance of General over Specific',
+                category: 'Interpretive Principles',
+                description: 'Document relies heavily on general rather than specific provisions',
+                statutoryImpact: 'Principle: Specific provisions prevail over general (generalia specialibus non derogant)',
+                weight: 4
+              });
+            }
+
+            // 6.2 Express inclusions/exclusions (expressio unius est exclusio alterius)
+            const inclusionTerms = content.match(/\b(includes?|including|such as|means)\b/gi);
+            const exclusionTerms = content.match(/\b(excludes?|excluding|except|other than|but not)\b/gi);
+            if (inclusionTerms && !exclusionTerms && inclusionTerms.length > 3) {
+              issues.push({
+                severity: 'low',
+                type: 'Express Inclusions without Exclusions',
+                category: 'Interpretive Principles',
+                description: 'Multiple express inclusions may imply exclusion of unstated items',
+                statutoryImpact: 'Principle: Express mention excludes unstated items (expressio unius)',
+                weight: 3
+              });
+            }
+
+            // Calculate overall severity score
+            const totalWeight = issues.reduce((sum, issue) => sum + (issue.weight || 0), 0);
+
+            // Sort issues by weight (highest first)
+            issues.sort((a, b) => (b.weight || 0) - (a.weight || 0));
+
+            // Add metadata
+            issues.forEach((issue, index) => {
+              issue.id = `ISSUE-${index + 1}`;
+              issue.governingFramework = primaryActs.length > 0 ? primaryActs[0].text : 'Unspecified';
+            });
+
+            return {
+              issues: issues,
+              summary: {
+                totalIssues: issues.length,
+                critical: issues.filter(i => i.severity === 'critical').length,
+                high: issues.filter(i => i.severity === 'high').length,
+                medium: issues.filter(i => i.severity === 'medium').length,
+                low: issues.filter(i => i.severity === 'low').length,
+                overallRiskScore: totalWeight,
+                riskLevel: totalWeight > 40 ? 'CRITICAL' : totalWeight > 25 ? 'HIGH' : totalWeight > 15 ? 'MEDIUM' : 'LOW'
+              }
+            };
+          };
+
+          // Helper function: Check citation consistency
+          const checkCitationConsistency = (content) => {
+            const inconsistencies = [];
+
+            // Check for mixed section reference styles
+            const sectionStyle1 = content.match(/section \d+/gi);
+            const sectionStyle2 = content.match(/s\.\d+/gi);
+            const sectionStyle3 = content.match(/sec\. \d+/gi);
+
+            const styles = [sectionStyle1, sectionStyle2, sectionStyle3].filter(s => s && s.length > 0);
+            if (styles.length > 1) {
+              inconsistencies.push('Mixed section reference formats (e.g., "section 5", "s.5", "sec. 5")');
+            }
+
+            // Check for mixed subsection styles
+            const subsectionParen = content.match(/\(\d+\)/g);
+            const subsectionBracket = content.match(/\[\d+\]/g);
+            if (subsectionParen && subsectionBracket) {
+              inconsistencies.push('Mixed subsection formats (parentheses vs brackets)');
+            }
+
+            return inconsistencies;
+          };
+
+          // Helper function: Identify subordinate instruments
+          const identifySubordinateInstruments = (content) => {
+            const regulations = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Regulations?\s+\d{4}/g) || [];
+            const rules = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Rules\s+\d{4}/g) || [];
+            const orders = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Orders?\s+\d{4}/g) || [];
+            const instruments = content.match(/[A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+Instrument\s+\d{4}/g) || [];
+
+            return {
+              regulations: [...new Set(regulations)],
+              rules: [...new Set(rules)],
+              orders: [...new Set(orders)],
+              instruments: [...new Set(instruments)],
+              total: regulations.length + rules.length + orders.length + instruments.length
+            };
           };
 
           const extractContextualMarkers = (content, preset) => {
@@ -283,14 +2108,386 @@
             };
           };
 
+          // Victorian Law Statutory Compliance Checker
+          const checkVictorianStatutoryCompliance = (content, documentType, legalReferences) => {
+            const complianceIssues = [];
+
+            // Criminal Procedure Act 2009 compliance checks
+            if (documentType === 'Disclosure Document' || documentType === 'Statement') {
+              if (!legalReferences.some(ref => /Criminal\s+Procedure\s+Act\s+2009/i.test(ref.text))) {
+                complianceIssues.push({
+                  severity: 'high',
+                  statute: 'Criminal Procedure Act 2009',
+                  section: 'General Compliance',
+                  defect: 'Disclosure documents must reference Criminal Procedure Act 2009',
+                  compliance: 'non-compliant',
+                  remediation: 'Add reference to governing legislation - Criminal Procedure Act 2009'
+                });
+              }
+
+              // Check for disclosure timeline compliance
+              if (!/within\s+\d+\s+(days?|weeks?|months?)/i.test(content)) {
+                complianceIssues.push({
+                  severity: 'high',
+                  statute: 'Criminal Procedure Act 2009',
+                  section: 'Part 5.2 - Disclosure timing',
+                  defect: 'No specific timeframe for disclosure identified',
+                  compliance: 'potentially non-compliant',
+                  remediation: 'Specify disclosure timeline as required by CPA 2009 Part 5.2'
+                });
+              }
+            }
+
+            // Evidence Act 2008 compliance checks
+            if (documentType === 'Evidence Exhibit' || documentType === 'Evidentiary Certificate') {
+              if (!legalReferences.some(ref => /Evidence\s+Act\s+2008/i.test(ref.text))) {
+                complianceIssues.push({
+                  severity: 'high',
+                  statute: 'Evidence Act 2008 (Vic)',
+                  section: 'General Compliance',
+                  defect: 'Evidentiary materials must reference Evidence Act 2008',
+                  compliance: 'non-compliant',
+                  remediation: 'Add reference to Evidence Act 2008 (Vic)'
+                });
+              }
+
+              // Check for certificate requirements under Evidence Act
+              if (documentType === 'Evidentiary Certificate' && !/certificate\s+under\s+section\s+\d+/i.test(content)) {
+                complianceIssues.push({
+                  severity: 'critical',
+                  statute: 'Evidence Act 2008 (Vic)',
+                  section: 'Certificate provisions',
+                  defect: 'Certificate must specify authorizing section',
+                  compliance: 'non-compliant',
+                  remediation: 'Add "Certificate under section [X] of the Evidence Act 2008"'
+                });
+              }
+            }
+
+            // Victoria Police Act 2013 compliance checks
+            if (documentType === 'Victoria Police Manual' || /victoria\s+police/i.test(content)) {
+              if (!/Victoria\s+Police\s+Act\s+2013/i.test(content)) {
+                complianceIssues.push({
+                  severity: 'medium',
+                  statute: 'Victoria Police Act 2013',
+                  section: 'General Compliance',
+                  defect: 'Police procedures should reference Victoria Police Act 2013',
+                  compliance: 'potentially non-compliant',
+                  remediation: 'Add reference to Victoria Police Act 2013'
+                });
+              }
+            }
+
+            // Charter of Human Rights compliance checks
+            const humanRightsIndicators = /rights?|fairness|natural justice|discrimination|equality/i;
+            if (humanRightsIndicators.test(content)) {
+              if (!/Charter\s+of\s+Human\s+Rights/i.test(content)) {
+                complianceIssues.push({
+                  severity: 'medium',
+                  statute: 'Charter of Human Rights and Responsibilities Act 2006',
+                  section: 'Human rights considerations',
+                  defect: 'Document discusses rights but does not reference Charter',
+                  compliance: 'consider-charter',
+                  remediation: 'Consider whether Charter of Human Rights and Responsibilities Act 2006 is engaged'
+                });
+              }
+            }
+
+            // Court-specific compliance checks
+            if (documentType === 'Court Order' || documentType === 'Court Documentation') {
+              const hasCourtRef = /Supreme\s+Court|County\s+Court|Magistrates/i.test(content);
+              const hasFullCourtName = /Supreme\s+Court\s+of\s+Victoria|County\s+Court\s+of\s+Victoria|Magistrates[\'']?\s+Court\s+of\s+Victoria/i.test(content);
+
+              if (hasCourtRef && !hasFullCourtName) {
+                complianceIssues.push({
+                  severity: 'high',
+                  statute: 'Court rules and procedures',
+                  section: 'Court identification',
+                  defect: 'Court references must use full official name including "of Victoria"',
+                  compliance: 'non-compliant',
+                  remediation: 'Use full court names: "Supreme Court of Victoria", "County Court of Victoria", "Magistrates\' Court of Victoria"'
+                });
+              }
+            }
+
+            return complianceIssues;
+          };
+
+          // Cross-File Narrative and Timeline Evaluator
+          const evaluateCrossFileNarrativeTimeline = (contentA, contentB, fileAMetadata, fileBMetadata) => {
+            const narrativeAnalysis = {
+              timelineDiscrepancies: [],
+              narrativeInconsistencies: [],
+              eventSequenceMismatch: [],
+              factualContradictions: [],
+              sequentialMapping: []
+            };
+
+            // Extract dates and temporal references from both files
+            const datesA = extractDatesAndTimeline(contentA);
+            const datesB = extractDatesAndTimeline(contentB);
+
+            // Extract events and narrative elements
+            const eventsA = extractNarrativeEvents(contentA);
+            const eventsB = extractNarrativeEvents(contentB);
+
+            // Compare timelines
+            datesA.forEach(dateA => {
+              const matchingDatesB = datesB.filter(dateB =>
+                dateB.normalizedDate === dateA.normalizedDate
+              );
+
+              if (matchingDatesB.length > 0) {
+                matchingDatesB.forEach(dateB => {
+                  if (dateA.context !== dateB.context) {
+                    narrativeAnalysis.timelineDiscrepancies.push({
+                      date: dateA.normalizedDate,
+                      fileA: { line: dateA.line, context: dateA.context },
+                      fileB: { line: dateB.line, context: dateB.context },
+                      severity: 'high',
+                      defect: 'Same date referenced with different contexts',
+                      mapping: `File A Line ${dateA.line} vs File B Line ${dateB.line}`
+                    });
+                  }
+                });
+              }
+            });
+
+            // Compare event sequences
+            const commonTerms = findCommonNarrativeTerms(eventsA, eventsB);
+            commonTerms.forEach(term => {
+              const orderA = eventsA.findIndex(e => e.text.toLowerCase().includes(term.toLowerCase()));
+              const orderB = eventsB.findIndex(e => e.text.toLowerCase().includes(term.toLowerCase()));
+
+              if (orderA !== -1 && orderB !== -1) {
+                const contextA = eventsA[orderA];
+                const contextB = eventsB[orderB];
+
+                // Check if surrounding context differs significantly
+                if (contextA.surrounding !== contextB.surrounding) {
+                  narrativeAnalysis.eventSequenceMismatch.push({
+                    term: term,
+                    fileA: { line: contextA.line, sequence: orderA, context: contextA.text },
+                    fileB: { line: contextB.line, sequence: orderB, context: contextB.text },
+                    severity: 'medium',
+                    defect: 'Same event referenced but surrounding narrative differs',
+                    mapping: `File A Line ${contextA.line} (Event #${orderA + 1}) vs File B Line ${contextB.line} (Event #${orderB + 1})`
+                  });
+                }
+              }
+            });
+
+            // Look for direct contradictions
+            const contradictions = findFactualContradictions(contentA, contentB);
+            narrativeAnalysis.factualContradictions = contradictions;
+
+            // Build sequential mapping of all cross-referenced elements
+            narrativeAnalysis.sequentialMapping = buildSequentialMapping(
+              datesA,
+              datesB,
+              eventsA,
+              eventsB,
+              contentA,
+              contentB
+            );
+
+            return narrativeAnalysis;
+          };
+
+          // Extract dates and temporal references
+          const extractDatesAndTimeline = (content) => {
+            const dates = [];
+            const lines = content.split('\n');
+
+            const datePatterns = [
+              /\b(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})\b/g,  // DD/MM/YYYY or DD-MM-YYYY
+              /\b(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})\b/g,    // YYYY/MM/DD
+              /\b(\d{1,2})\s+(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{4})\b/gi,
+              /\b(January|February|March|April|May|June|July|August|September|October|November|December)\s+(\d{1,2}),?\s+(\d{4})\b/gi
+            ];
+
+            lines.forEach((line, index) => {
+              datePatterns.forEach(pattern => {
+                const matches = [...line.matchAll(pattern)];
+                matches.forEach(match => {
+                  dates.push({
+                    line: index + 1,
+                    original: match[0],
+                    normalizedDate: match[0],  // Simplified - would normally parse to standard format
+                    context: line.trim()
+                  });
+                });
+              });
+
+              // Temporal markers
+              const temporalMarkers = [
+                /\bbefore\s+[^.]+/gi,
+                /\bafter\s+[^.]+/gi,
+                /\bwithin\s+\d+\s+(days?|weeks?|months?|years?)/gi,
+                /\bon\s+or\s+about\s+[^.]+/gi
+              ];
+
+              temporalMarkers.forEach(pattern => {
+                const matches = [...line.matchAll(pattern)];
+                matches.forEach(match => {
+                  dates.push({
+                    line: index + 1,
+                    original: match[0],
+                    normalizedDate: 'temporal-marker',
+                    context: line.trim()
+                  });
+                });
+              });
+            });
+
+            return dates;
+          };
+
+          // Extract narrative events
+          const extractNarrativeEvents = (content) => {
+            const events = [];
+            const lines = content.split('\n');
+
+            const eventIndicators = [
+              /\b(occurred|happened|took place|transpired|witnessed|observed|attended|conducted|performed|executed)\b/gi,
+              /\b(seized|arrested|detained|charged|interviewed|questioned)\b/gi,
+              /\b(stated|declared|asserted|claimed|testified|deposed)\b/gi,
+              /\b(found|discovered|located|identified|recovered)\b/gi
+            ];
+
+            lines.forEach((line, index) => {
+              eventIndicators.forEach(pattern => {
+                if (pattern.test(line)) {
+                  const surrounding = lines.slice(Math.max(0, index - 1), Math.min(lines.length, index + 2)).join(' ');
+                  events.push({
+                    line: index + 1,
+                    text: line.trim(),
+                    surrounding: surrounding.trim()
+                  });
+                }
+              });
+            });
+
+            return events;
+          };
+
+          // Find common narrative terms
+          const findCommonNarrativeTerms = (eventsA, eventsB) => {
+            const termsA = new Set(
+              eventsA.flatMap(e => e.text.toLowerCase().match(/\b\w{4,}\b/g) || [])
+            );
+            const termsB = new Set(
+              eventsB.flatMap(e => e.text.toLowerCase().match(/\b\w{4,}\b/g) || [])
+            );
+
+            return [...termsA].filter(term => termsB.has(term) && !['this', 'that', 'with', 'from', 'have', 'been', 'were', 'said'].includes(term));
+          };
+
+          // Find factual contradictions
+          const findFactualContradictions = (contentA, contentB) => {
+            const contradictions = [];
+
+            // Simple contradiction patterns
+            const contradictionPatterns = [
+              { pattern: /\b(yes|no|true|false|did|did not|was|was not)\b/gi, type: 'affirmation/negation' },
+              { pattern: /\b\d+\s+(person|people|officer|individual|item|exhibit)/gi, type: 'quantity' },
+              { pattern: /\b(present|absent|available|unavailable)\b/gi, type: 'presence' }
+            ];
+
+            // This is a simplified version - full implementation would use NLP
+            contradictionPatterns.forEach(({ pattern, type }) => {
+              const matchesA = contentA.match(pattern) || [];
+              const matchesB = contentB.match(pattern) || [];
+
+              if (matchesA.length > 0 && matchesB.length > 0) {
+                const uniqueA = new Set(matchesA.map(m => m.toLowerCase()));
+                const uniqueB = new Set(matchesB.map(m => m.toLowerCase()));
+
+                // Check for direct opposites
+                uniqueA.forEach(a => {
+                  if (a.includes('not') && uniqueB.has(a.replace(/not\s+/, ''))) {
+                    contradictions.push({
+                      type: type,
+                      fileA: a,
+                      fileB: a.replace(/not\s+/, ''),
+                      severity: 'high',
+                      defect: 'Direct contradiction between documents'
+                    });
+                  }
+                });
+              }
+            });
+
+            return contradictions;
+          };
+
+          // Build sequential mapping
+          const buildSequentialMapping = (datesA, datesB, eventsA, eventsB, contentA, contentB) => {
+            const mapping = [];
+
+            // Map all dates sequentially
+            datesA.forEach((dateA, indexA) => {
+              mapping.push({
+                sequenceNumber: mapping.length + 1,
+                type: 'temporal',
+                source: 'File A',
+                line: dateA.line,
+                element: dateA.original,
+                context: dateA.context,
+                crossReference: datesB.find(db => db.normalizedDate === dateA.normalizedDate) || null
+              });
+            });
+
+            datesB.forEach((dateB, indexB) => {
+              if (!mapping.find(m => m.source === 'File B' && m.line === dateB.line)) {
+                mapping.push({
+                  sequenceNumber: mapping.length + 1,
+                  type: 'temporal',
+                  source: 'File B',
+                  line: dateB.line,
+                  element: dateB.original,
+                  context: dateB.context,
+                  crossReference: datesA.find(da => da.normalizedDate === dateB.normalizedDate) || null
+                });
+              }
+            });
+
+            // Map all events sequentially
+            eventsA.forEach(eventA => {
+              mapping.push({
+                sequenceNumber: mapping.length + 1,
+                type: 'narrative-event',
+                source: 'File A',
+                line: eventA.line,
+                element: eventA.text,
+                context: eventA.surrounding,
+                crossReference: null
+              });
+            });
+
+            eventsB.forEach(eventB => {
+              mapping.push({
+                sequenceNumber: mapping.length + 1,
+                type: 'narrative-event',
+                source: 'File B',
+                line: eventB.line,
+                element: eventB.text,
+                context: eventB.surrounding,
+                crossReference: null
+              });
+            });
+
+            return mapping.sort((a, b) => a.sequenceNumber - b.sequenceNumber);
+          };
+
           const performCrossReference = (phaseAResults) => {
             const discrepancies = [];
             const consistencies = [];
             const omissions = [];
-            
+
             const refsA = new Set(phaseAResults.fileA[0].findings.legalReferences.map(r => r.text.toLowerCase()));
             const refsB = new Set(phaseAResults.fileB[0].findings.legalReferences.map(r => r.text.toLowerCase()));
-            
+
             refsA.forEach(ref => {
               if (refsB.has(ref)) {
                 consistencies.push({ type: 'Statutory Reference', element: ref, status: 'Present in both documents' });
@@ -298,16 +2495,16 @@
                 omissions.push({ type: 'Statutory Reference', element: ref, status: 'Present only in File A' });
               }
             });
-            
+
             refsB.forEach(ref => {
               if (!refsA.has(ref)) {
                 omissions.push({ type: 'Statutory Reference', element: ref, status: 'Present only in File B' });
               }
             });
-            
+
             const termsA = phaseAResults.fileA[0].findings.keyTermsIdentified.map(t => t.term);
             const termsB = phaseAResults.fileB[0].findings.keyTermsIdentified.map(t => t.term);
-            
+
             const significantDiscrepancy = Math.abs(termsA.length - termsB.length) > 5;
             if (significantDiscrepancy) {
               discrepancies.push({
@@ -316,13 +2513,39 @@
                 severity: 'medium'
               });
             }
-            
+
+            // Add Victorian statutory compliance checks
+            const complianceA = checkVictorianStatutoryCompliance(
+              fileContents.fileA,
+              files.fileA?.documentType || 'General Legal Document',
+              phaseAResults.fileA[0].findings.legalReferences
+            );
+
+            const complianceB = checkVictorianStatutoryCompliance(
+              fileContents.fileB,
+              files.fileB?.documentType || 'General Legal Document',
+              phaseAResults.fileB[0].findings.legalReferences
+            );
+
+            // Add narrative and timeline evaluation
+            const narrativeEvaluation = evaluateCrossFileNarrativeTimeline(
+              fileContents.fileA,
+              fileContents.fileB,
+              files.fileA,
+              files.fileB
+            );
+
             return {
               discrepancies,
               consistencies: consistencies.slice(0, 10),
               omissions: omissions.slice(0, 10),
               governingFramework: identifyGoverningFramework(phaseAResults),
-              complianceAssessment: assessCompliance(phaseAResults)
+              complianceAssessment: assessCompliance(phaseAResults),
+              victorianCompliance: {
+                fileA: complianceA,
+                fileB: complianceB
+              },
+              narrativeAndTimeline: narrativeEvaluation
             };
           };
 
@@ -358,25 +2581,85 @@
 
           const assessCompliance = (phaseAResults) => {
             const assessment = {
-              fileA: { compliant: 0, nonCompliant: 0, unclear: 0 },
-              fileB: { compliant: 0, nonCompliant: 0, unclear: 0 }
+              fileA: {
+                compliant: 0,
+                nonCompliant: 0,
+                unclear: 0,
+                criticalIssues: 0,
+                highIssues: 0,
+                mediumIssues: 0,
+                lowIssues: 0,
+                totalWeight: 0,
+                riskLevel: 'LOW'
+              },
+              fileB: {
+                compliant: 0,
+                nonCompliant: 0,
+                unclear: 0,
+                criticalIssues: 0,
+                highIssues: 0,
+                mediumIssues: 0,
+                lowIssues: 0,
+                totalWeight: 0,
+                riskLevel: 'LOW'
+              }
             };
-            
+
             ['fileA', 'fileB'].forEach(fileKey => {
+              let fileRiskScore = 0;
+
               phaseAResults[fileKey].forEach(analysis => {
-                const issues = analysis.findings.potentialIssues;
-                
-                if (issues.length === 0) {
-                  assessment[fileKey].compliant++;
+                const potentialIssues = analysis.findings.potentialIssues;
+
+                // Handle both old format (array) and new format (object with issues/summary)
+                const issues = potentialIssues.issues || potentialIssues;
+                const summary = potentialIssues.summary;
+
+                if (summary) {
+                  // New enhanced format
+                  assessment[fileKey].criticalIssues += summary.critical || 0;
+                  assessment[fileKey].highIssues += summary.high || 0;
+                  assessment[fileKey].mediumIssues += summary.medium || 0;
+                  assessment[fileKey].lowIssues += summary.low || 0;
+                  fileRiskScore += summary.overallRiskScore || 0;
+
+                  if (summary.critical > 0 || summary.high > 0) {
+                    assessment[fileKey].nonCompliant++;
+                  } else if (summary.medium > 0) {
+                    assessment[fileKey].unclear++;
+                  } else {
+                    assessment[fileKey].compliant++;
+                  }
                 } else {
-                  issues.forEach(issue => {
-                    if (issue.severity === 'high') assessment[fileKey].nonCompliant++;
-                    else assessment[fileKey].unclear++;
-                  });
+                  // Old simple format (backward compatibility)
+                  if (issues.length === 0) {
+                    assessment[fileKey].compliant++;
+                  } else {
+                    issues.forEach(issue => {
+                      if (issue.severity === 'critical') {
+                        assessment[fileKey].criticalIssues++;
+                        assessment[fileKey].nonCompliant++;
+                      } else if (issue.severity === 'high') {
+                        assessment[fileKey].highIssues++;
+                        assessment[fileKey].nonCompliant++;
+                      } else if (issue.severity === 'medium') {
+                        assessment[fileKey].mediumIssues++;
+                        assessment[fileKey].unclear++;
+                      } else {
+                        assessment[fileKey].lowIssues++;
+                        assessment[fileKey].unclear++;
+                      }
+                    });
+                  }
                 }
               });
+
+              assessment[fileKey].totalWeight = fileRiskScore;
+              assessment[fileKey].riskLevel = fileRiskScore > 40 ? 'CRITICAL' :
+                                               fileRiskScore > 25 ? 'HIGH' :
+                                               fileRiskScore > 15 ? 'MEDIUM' : 'LOW';
             });
-            
+
             return assessment;
           };
 
@@ -507,36 +2790,174 @@
             a.click();
           };
 
+          // Progress Bar Component
+          const ProgressBar = ({ progress, label, showPercentage = true }) => (
+            <div style={{ width: '100%', marginBottom: '12px' }}>
+              {label && (
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  marginBottom: '6px',
+                  fontSize: '13px',
+                  color: '#374151'
+                }}>
+                  <span>{label}</span>
+                  {showPercentage && <span>{progress}%</span>}
+                </div>
+              )}
+              <div style={{
+                width: '100%',
+                height: '8px',
+                backgroundColor: '#e5e7eb',
+                borderRadius: '4px',
+                overflow: 'hidden',
+                position: 'relative'
+              }}>
+                <div
+                  className="fade-in"
+                  style={{
+                    width: `${progress}%`,
+                    height: '100%',
+                    background: 'linear-gradient(to right, #2563eb, #1d4ed8)',
+                    borderRadius: '4px',
+                    transition: 'width 0.3s ease-in-out',
+                    position: 'relative',
+                    overflow: 'hidden'
+                  }}
+                >
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)',
+                    animation: 'shimmer 1.5s infinite'
+                  }} />
+                </div>
+              </div>
+            </div>
+          );
+
+          // Skeleton Loader Component
+          const SkeletonLoader = ({ width = '100%', height = '20px', style = {} }) => (
+            <div
+              className="skeleton"
+              style={{
+                width,
+                height,
+                ...style
+              }}
+            />
+          );
+
+          // Enhanced Badge Component
+          const Badge = ({ children, variant = 'default', size = 'md' }) => {
+            const variants = {
+              default: { bg: '#f3f4f6', color: '#374151' },
+              success: { bg: '#dcfce7', color: '#166534' },
+              warning: { bg: '#fef3c7', color: '#92400e' },
+              error: { bg: '#fee2e2', color: '#991b1b' },
+              info: { bg: '#dbeafe', color: '#1e40af' },
+              primary: { bg: '#eff6ff', color: '#1e40af' }
+            };
+
+            const sizes = {
+              sm: { padding: '2px 6px', fontSize: '11px' },
+              md: { padding: '4px 10px', fontSize: '12px' },
+              lg: { padding: '6px 14px', fontSize: '14px' }
+            };
+
+            const variantStyle = variants[variant] || variants.default;
+            const sizeStyle = sizes[size] || sizes.md;
+
+            return (
+              <span style={{
+                display: 'inline-block',
+                ...sizeStyle,
+                backgroundColor: variantStyle.bg,
+                color: variantStyle.color,
+                borderRadius: '9999px',
+                fontWeight: '600',
+                whiteSpace: 'nowrap'
+              }}>
+                {children}
+              </span>
+            );
+          };
+
           const FileUploadZone = ({ fileKey, label }) => (
-            <div className="bg-white rounded-lg shadow-md p-6 border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors">
-              <div className="text-center">
-                <Icon name="FileText" className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-semibold mb-2">{label}</h3>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+              padding: '24px',
+              border: '2px dashed #d1d5db',
+              transition: 'border-color 0.2s'
+            }}>
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: '48px', marginBottom: '16px' }}>📄</div>
+                <h3 style={{ fontSize: '18px', fontWeight: '600', marginBottom: '8px' }}>{label}</h3>
                 
-                {!files[fileKey] ? (
+                {isUploading[fileKey] ? (
+                  <div className="fade-in" style={{ padding: '16px' }}>
+                    <div style={{
+                      fontSize: '32px',
+                      marginBottom: '16px',
+                      textAlign: 'center',
+                      className: 'pulse'
+                    }}>📤</div>
+                    <ProgressBar
+                      progress={uploadProgress[fileKey]}
+                      label="Uploading file..."
+                      showPercentage={true}
+                    />
+                  </div>
+                ) : !files[fileKey] ? (
                   <>
                     <div
                       onDragOver={handleDragOver}
                       onDrop={(e) => handleDrop(e, fileKey)}
-                      className="mb-4 p-8 bg-gray-50 rounded-lg"
+                      style={{
+                        marginBottom: '16px',
+                        padding: '32px',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: '8px'
+                      }}
                     >
-                      <p className="text-sm text-gray-600 mb-2">Drag and drop file here</p>
-                      <p className="text-xs text-gray-500">or</p>
+                      <p style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>Drag and drop file here</p>
+                      <p style={{ fontSize: '12px', color: '#9ca3af' }}>or</p>
                     </div>
-                    
+
                     <button
                       onClick={() => fileKey === 'fileA' ? fileInputA.current.click() : fileInputB.current.click()}
-                      className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors mb-2 w-full flex items-center justify-center"
+                      style={{
+                        backgroundColor: '#2563eb',
+                        color: 'white',
+                        padding: '8px 16px',
+                        borderRadius: '8px',
+                        border: 'none',
+                        cursor: 'pointer',
+                        width: '100%',
+                        marginBottom: '8px',
+                        fontSize: '14px',
+                        fontWeight: '500'
+                      }}
                     >
-                      <Icon name="Upload" className="inline-block mr-2 h-4 w-4" />
-                      Choose File
+                      ⬆️ Choose File
                     </button>
                     
-                    <div className="mt-4">
+                    <div style={{ marginTop: '16px' }}>
                       <input
                         type="text"
                         placeholder="Or paste URL to document"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        style={{
+                          width: '100%',
+                          padding: '8px 12px',
+                          border: '1px solid #d1d5db',
+                          borderRadius: '8px',
+                          fontSize: '14px'
+                        }}
                         onKeyPress={(e) => {
                           if (e.key === 'Enter' && e.target.value) {
                             handleUrlUpload(e.target.value, fileKey);
@@ -549,23 +2970,67 @@
                       type="file"
                       ref={fileKey === 'fileA' ? fileInputA : fileInputB}
                       onChange={(e) => handleFileUpload(e.target.files[0], fileKey)}
-                      className="hidden"
+                      style={{ display: 'none' }}
                       accept=".txt,.doc,.docx,.pdf"
                     />
                   </>
                 ) : (
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <Icon name="CheckCircle" className="inline-block text-green-600 mr-2" />
-                    <span className="text-sm font-medium text-green-800">{files[fileKey].name}</span>
-                    <button
-                      onClick={() => {
-                        setFiles(prev => ({ ...prev, [fileKey]: null }));
-                        setFileContents(prev => ({ ...prev, [fileKey]: '' }));
-                      }}
-                      className="ml-4 text-red-600 text-sm hover:text-red-800"
-                    >
-                      Remove
-                    </button>
+                  <div className="fade-in" style={{
+                    backgroundColor: '#f0fdf4',
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #bbf7d0'
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      marginBottom: '8px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', flex: 1 }}>
+                        <span style={{ fontSize: '20px', marginRight: '8px' }}>✅</span>
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            fontSize: '14px',
+                            fontWeight: '600',
+                            color: '#166534',
+                            marginBottom: '4px'
+                          }}>
+                            {files[fileKey].name}
+                          </div>
+                          {files[fileKey].documentType && (
+                            <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                              <Badge variant="success" size="sm">
+                                {files[fileKey].documentType}
+                              </Badge>
+                              {files[fileKey].size && (
+                                <span style={{ fontSize: '11px', color: '#6b7280' }}>
+                                  {(files[fileKey].size / 1024).toFixed(1)} KB
+                                </span>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setFiles(prev => ({ ...prev, [fileKey]: null }));
+                          setFileContents(prev => ({ ...prev, [fileKey]: '' }));
+                        }}
+                        style={{
+                          color: '#dc2626',
+                          fontSize: '13px',
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px 8px',
+                          fontWeight: '500'
+                        }}
+                        aria-label={`Remove ${files[fileKey].name}`}
+                      >
+                        ✕ Remove
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -574,19 +3039,67 @@
 
           const AnalysisSection = ({ title, children, sectionId }) => {
             const isExpanded = expandedSections[sectionId];
-            
+
             return (
-              <div className="bg-white rounded-lg shadow-md mb-4">
+              <div
+                className="fade-in"
+                style={{
+                  backgroundColor: 'white',
+                  borderRadius: '8px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
+                  marginBottom: '16px',
+                  overflow: 'hidden'
+                }}
+              >
                 <button
                   onClick={() => toggleSection(sectionId)}
-                  className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+                  style={{
+                    width: '100%',
+                    padding: '24px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    background: isExpanded ? '#f9fafb' : 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    fontSize: '18px',
+                    fontWeight: '600',
+                    textAlign: 'left'
+                  }}
+                  aria-expanded={isExpanded}
+                  aria-controls={`section-${sectionId}`}
+                  role="button"
+                  tabIndex={0}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      toggleSection(sectionId);
+                    }
+                  }}
                 >
-                  <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-                  {isExpanded ? <Icon name="ChevronDown" className="h-5 w-5" /> : <Icon name="ChevronRight" className="h-5 w-5" />}
+                  <span>{title}</span>
+                  <span
+                    style={{
+                      fontSize: '14px',
+                      transition: 'transform 0.2s ease-in-out',
+                      transform: isExpanded ? 'rotate(0deg)' : 'rotate(-90deg)'
+                    }}
+                  >
+                    ▼
+                  </span>
                 </button>
-                
+
                 {isExpanded && (
-                  <div className="px-6 pb-6 border-t border-gray-200">
+                  <div
+                    id={`section-${sectionId}`}
+                    className="fade-in"
+                    style={{
+                      padding: '0 24px 24px',
+                      borderTop: '1px solid #e5e7eb'
+                    }}
+                    role="region"
+                    aria-labelledby={`section-${sectionId}-title`}
+                  >
                     {children}
                   </div>
                 )}
@@ -595,111 +3108,330 @@
           };
 
           return (
-            <div className="min-h-screen bg-gradient-to-br from-blue-50 to-gray-100 p-6">
-              <div className="max-w-7xl mx-auto">
-                <div className="bg-white rounded-xl shadow-lg p-8 mb-6">
-                  <div className="flex items-center justify-between mb-6">
+            <div style={{
+              minHeight: '100vh',
+              background: 'linear-gradient(to bottom right, #eff6ff, #f3f4f6)',
+              padding: '24px'
+            }}>
+              <div style={{ maxWidth: '1280px', margin: '0 auto' }}>
+                <div style={{
+                  backgroundColor: 'white',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                  padding: '32px',
+                  marginBottom: '24px'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    marginBottom: '24px'
+                  }}>
                     <div>
-                      <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                      <h1 style={{
+                        fontSize: '30px',
+                        fontWeight: 'bold',
+                        color: '#111827',
+                        marginBottom: '8px'
+                      }}>
                         Forensic Legal Document Analyzer
                       </h1>
-                      <p className="text-gray-600">
+                      <p style={{ color: '#6b7280' }}>
                         Multi-Layered Interpretive Analysis System for Evidentiary Documents
                       </p>
                     </div>
-                    <Icon name="Eye" className="h-12 w-12 text-blue-600" />
+                    <div style={{ fontSize: '48px' }}>👁️</div>
                   </div>
 
-                  <div className="bg-blue-50 border-l-4 border-blue-600 p-4 mb-6">
-                    <h3 className="font-semibold text-blue-900 mb-2">System Capabilities:</h3>
-                    <ul className="text-sm text-blue-800 space-y-1">
-                      <li>• Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks</li>
-                      <li>• Phase B: Statutory framework identification and cross-reference analysis</li>
-                      <li>• Phase C: Comprehensive statutory interpretation applying modern purposive approach</li>
+                  <div style={{
+                    backgroundColor: '#eff6ff',
+                    borderLeft: '4px solid #2563eb',
+                    padding: '16px',
+                    marginBottom: '24px'
+                  }}>
+                    <h3 style={{
+                      fontWeight: '600',
+                      color: '#1e3a8a',
+                      marginBottom: '8px'
+                    }}>System Capabilities:</h3>
+                    <ul style={{
+                      fontSize: '14px',
+                      color: '#1e40af',
+                      listStyle: 'none',
+                      padding: 0
+                    }}>
+                      <li style={{ marginBottom: '4px' }}>• Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks</li>
+                      <li style={{ marginBottom: '4px' }}>• Phase B: Statutory framework identification and cross-reference analysis</li>
+                      <li style={{ marginBottom: '4px' }}>• Phase C: Comprehensive statutory interpretation applying modern purposive approach</li>
                       <li>• Identifies legal flaws, factual inconsistencies, and procedural defects</li>
                     </ul>
                   </div>
 
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
+                    gap: '24px',
+                    marginBottom: '24px'
+                  }}>
                     <FileUploadZone fileKey="fileA" label="Document A (Primary Exhibit)" />
-                    <FileUploadZone fileKey="fileB" label="Comparative Exhibit (Document B)" />
+                    <FileUploadZone fileKey="fileB" label="Document B (Comparative Exhibit)" />
                   </div>
 
-                  <button
-                    onClick={simulateAnalysis}
-                    disabled={!files.fileA || !files.fileB || analysisState === 'analyzing'}
-                    className="w-full bg-gradient-to-r from-blue-600 to-blue-700 text-white py-4 rounded-lg font-semibold text-lg hover:from-blue-700 hover:to-blue-800 transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-lg flex items-center justify-center"
-                  >
-                    {analysisState === 'analyzing' ? (
-                      <>
-                        <Icon name="Loader" className="inline-block mr-2 h-5 w-5 animate-spin" />
-                        {currentPhase}
-                      </>
-                    ) : (
-                      <>
-                        <Icon name="AlertCircle" className="inline-block mr-2 h-5 w-5" />
-                        Commence Forensic Analysis
-                      </>
+                  <div>
+                    <button
+                      onClick={simulateAnalysis}
+                      disabled={!files.fileA || !files.fileB || analysisState === 'analyzing'}
+                      style={{
+                        width: '100%',
+                        background: (!files.fileA || !files.fileB || analysisState === 'analyzing')
+                          ? '#9ca3af'
+                          : 'linear-gradient(to right, #2563eb, #1d4ed8)',
+                        color: 'white',
+                        padding: '16px',
+                        borderRadius: '8px',
+                        fontSize: '18px',
+                        fontWeight: '600',
+                        border: 'none',
+                        cursor: (!files.fileA || !files.fileB || analysisState === 'analyzing') ? 'not-allowed' : 'pointer',
+                        boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                        marginBottom: analysisState === 'analyzing' ? '12px' : '0'
+                      }}
+                      aria-label={analysisState === 'analyzing' ? 'Analysis in progress' : 'Start forensic analysis'}
+                    >
+                      {analysisState === 'analyzing' ? (
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                          <span className="spin">⌛</span>
+                          <span>{currentPhase}</span>
+                        </div>
+                      ) : (
+                        <>⚠️ Commence Forensic Analysis</>
+                      )}
+                    </button>
+                    {analysisState === 'analyzing' && (
+                      <div className="fade-in">
+                        <ProgressBar
+                          progress={analysisProgress}
+                          showPercentage={true}
+                        />
+                      </div>
                     )}
-                  </button>
+                  </div>
                 </div>
 
                 {analysisResults && (
-                  <div className="space-y-4">
-                    <div className="bg-white rounded-xl shadow-lg p-6">
-                      <div className="flex items-center justify-between mb-4">
-                        <h2 className="text-2xl font-bold text-gray-900">Analysis Report</h2>
+                  <div>
+                    <div style={{
+                      backgroundColor: 'white',
+                      borderRadius: '12px',
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.1)',
+                      padding: '24px',
+                      marginBottom: '16px'
+                    }}>
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        marginBottom: '16px'
+                      }}>
+                        <h2 style={{
+                          fontSize: '24px',
+                          fontWeight: 'bold',
+                          color: '#111827'
+                        }}>Analysis Report</h2>
                         <button
                           onClick={exportReport}
-                          className="flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            padding: '8px 16px',
+                            backgroundColor: '#16a34a',
+                            color: 'white',
+                            borderRadius: '8px',
+                            border: 'none',
+                            cursor: 'pointer',
+                            fontSize: '14px'
+                          }}
                         >
-                          <Icon name="Download" className="mr-2 h-4 w-4" />
-                          Export Report
+                          ⬇️ Export Report
                         </button>
                       </div>
 
-                      <div className="bg-yellow-50 border-l-4 border-yellow-600 p-4 mb-6">
-                        <h3 className="font-semibold text-yellow-900 mb-2">Executive Summary</h3>
-                        <p className="text-sm text-yellow-800 mb-3">
+                      <div style={{
+                        backgroundColor: '#fef3c7',
+                        borderLeft: '4px solid #f59e0b',
+                        padding: '16px',
+                        marginBottom: '24px'
+                      }}>
+                        <h3 style={{
+                          fontWeight: '600',
+                          color: '#78350f',
+                          marginBottom: '8px'
+                        }}>Executive Summary</h3>
+                        <p style={{
+                          fontSize: '14px',
+                          color: '#92400e',
+                          marginBottom: '12px'
+                        }}>
                           <strong>Overall Assessment:</strong> {analysisResults.summary.overallAssessment}
                         </p>
-                        <div className="text-sm text-yellow-800">
+                        <div style={{ fontSize: '14px', color: '#92400e' }}>
                           <strong>Critical Findings:</strong>
-                          <ul className="mt-2 space-y-1">
+                          <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
                             {analysisResults.summary.criticalFindings.map((finding, idx) => (
-                              <li key={idx}>• {finding}</li>
+                              <li key={idx} style={{ marginBottom: '4px' }}>{finding}</li>
                             ))}
                           </ul>
                         </div>
                       </div>
+
+                      {/* Visual Statistics Dashboard */}
+                      <div className="fade-in" style={{
+                        display: 'grid',
+                        gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                        gap: '16px',
+                        marginBottom: '24px'
+                      }}>
+                        {(() => {
+                          const countIssuesBySeverity = (severity) => {
+                            let count = 0;
+                            ['fileA', 'fileB'].forEach(fileKey => {
+                              if (analysisResults.phaseA[fileKey]) {
+                                analysisResults.phaseA[fileKey].forEach(preset => {
+                                  const issues = preset.findings.potentialIssues;
+                                  if (Array.isArray(issues)) {
+                                    count += issues.filter(i => i.severity === severity).length;
+                                  }
+                                });
+                              }
+                            });
+                            return count;
+                          };
+
+                          const totalIssues = ['critical', 'high', 'medium', 'low']
+                            .reduce((sum, severity) => sum + countIssuesBySeverity(severity), 0);
+
+                          const stats = [
+                            {
+                              label: 'Critical Issues',
+                              value: countIssuesBySeverity('critical'),
+                              icon: '🔴',
+                              color: '#fee2e2',
+                              textColor: '#991b1b'
+                            },
+                            {
+                              label: 'High Priority',
+                              value: countIssuesBySeverity('high'),
+                              icon: '🟡',
+                              color: '#fef3c7',
+                              textColor: '#92400e'
+                            },
+                            {
+                              label: 'Medium Priority',
+                              value: countIssuesBySeverity('medium'),
+                              icon: '🔵',
+                              color: '#dbeafe',
+                              textColor: '#1e40af'
+                            },
+                            {
+                              label: 'Total Issues',
+                              value: totalIssues,
+                              icon: '📊',
+                              color: '#f3f4f6',
+                              textColor: '#374151'
+                            }
+                          ];
+
+                          return stats.map((stat, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                backgroundColor: stat.color,
+                                padding: '20px',
+                                borderRadius: '12px',
+                                border: '1px solid rgba(0,0,0,0.1)',
+                                textAlign: 'center'
+                              }}
+                            >
+                              <div style={{ fontSize: '32px', marginBottom: '8px' }}>
+                                {stat.icon}
+                              </div>
+                              <div style={{
+                                fontSize: '28px',
+                                fontWeight: 'bold',
+                                color: stat.textColor,
+                                marginBottom: '4px'
+                              }}>
+                                {stat.value}
+                              </div>
+                              <div style={{
+                                fontSize: '13px',
+                                fontWeight: '500',
+                                color: stat.textColor,
+                                opacity: 0.8
+                              }}>
+                                {stat.label}
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
                     </div>
 
                     <AnalysisSection title="Phase A: Multi-Preset Forensic Examination" sectionId="phaseA">
-                      <div className="space-y-6 mt-4">
+                      <div style={{ marginTop: '16px' }}>
                         <div>
-                          <h4 className="font-semibold text-lg mb-3">Document A Analysis</h4>
+                          <h4 style={{
+                            fontWeight: '600',
+                            fontSize: '18px',
+                            marginBottom: '12px'
+                          }}>Document A Analysis</h4>
                           {analysisResults.phaseA.fileA.map((analysis, idx) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-lg mb-3">
-                              <h5 className="font-medium text-blue-900 mb-2">{analysis.preset}</h5>
-                              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div key={idx} style={{
+                              backgroundColor: '#f9fafb',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '12px'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#1e40af',
+                                marginBottom: '8px'
+                              }}>{analysis.preset}</h5>
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '16px',
+                                fontSize: '14px'
+                              }}>
                                 <div>
-                                  <p className="text-gray-600"><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
-                                  <p className="text-gray-600"><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
-                                  <p className="text-gray-600"><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-600"><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
-                                  <p className="text-gray-600"><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
-                                  <p className="text-gray-600"><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
                                 </div>
                               </div>
                               {analysis.findings.potentialIssues.length > 0 && (
-                                <div className="mt-3 p-3 bg-red-50 rounded border-l-4 border-red-600">
-                                  <strong className="text-red-900">Issues Identified:</strong>
-                                  <ul className="mt-2 text-sm text-red-800">
+                                <div style={{
+                                  marginTop: '12px',
+                                  padding: '12px',
+                                  backgroundColor: '#fef2f2',
+                                  borderRadius: '4px',
+                                  borderLeft: '4px solid #dc2626'
+                                }}>
+                                  <strong style={{ color: '#7f1d1d' }}>Issues Identified:</strong>
+                                  <ul style={{
+                                    marginTop: '8px',
+                                    fontSize: '14px',
+                                    color: '#991b1b',
+                                    paddingLeft: '20px'
+                                  }}>
                                     {analysis.findings.potentialIssues.map((issue, i) => (
-                                      <li key={i} className="mb-1">
-                                        • [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
+                                      <li key={i} style={{ marginBottom: '4px' }}>
+                                        [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
                                       </li>
                                     ))}
                                   </ul>
@@ -709,30 +3441,59 @@
                           ))}
                         </div>
 
-                        <div>
-                          <h4 className="font-semibold text-lg mb-3">Document B Analysis</h4>
+                        <div style={{ marginTop: '24px' }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            fontSize: '18px',
+                            marginBottom: '12px'
+                          }}>Document B Analysis</h4>
                           {analysisResults.phaseA.fileB.map((analysis, idx) => (
-                            <div key={idx} className="bg-gray-50 p-4 rounded-lg mb-3">
-                              <h5 className="font-medium text-blue-900 mb-2">{analysis.preset}</h5>
-                              <div className="grid md:grid-cols-2 gap-4 text-sm">
+                            <div key={idx} style={{
+                              backgroundColor: '#f9fafb',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '12px'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#1e40af',
+                                marginBottom: '8px'
+                              }}>{analysis.preset}</h5>
+                              <div style={{
+                                display: 'grid',
+                                gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+                                gap: '16px',
+                                fontSize: '14px'
+                              }}>
                                 <div>
-                                  <p className="text-gray-600"><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
-                                  <p className="text-gray-600"><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
-                                  <p className="text-gray-600"><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Word Count:</strong> {analysis.findings.wordCount}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Line Count:</strong> {analysis.findings.lineCount}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Key Terms:</strong> {analysis.findings.keyTermsIdentified.length}</p>
                                 </div>
                                 <div>
-                                  <p className="text-gray-600"><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
-                                  <p className="text-gray-600"><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
-                                  <p className="text-gray-600"><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Legal References:</strong> {analysis.findings.legalReferences.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Procedural Elements:</strong> {analysis.findings.proceduralElements.length}</p>
+                                  <p style={{ color: '#6b7280' }}><strong>Potential Issues:</strong> {analysis.findings.potentialIssues.length}</p>
                                 </div>
                               </div>
                               {analysis.findings.potentialIssues.length > 0 && (
-                                <div className="mt-3 p-3 bg-red-50 rounded border-l-4 border-red-600">
-                                  <strong className="text-red-900">Issues Identified:</strong>
-                                  <ul className="mt-2 text-sm text-red-800">
+                                <div style={{
+                                  marginTop: '12px',
+                                  padding: '12px',
+                                  backgroundColor: '#fef2f2',
+                                  borderRadius: '4px',
+                                  borderLeft: '4px solid #dc2626'
+                                }}>
+                                  <strong style={{ color: '#7f1d1d' }}>Issues Identified:</strong>
+                                  <ul style={{
+                                    marginTop: '8px',
+                                    fontSize: '14px',
+                                    color: '#991b1b',
+                                    paddingLeft: '20px'
+                                  }}>
                                     {analysis.findings.potentialIssues.map((issue, i) => (
-                                      <li key={i} className="mb-1">
-                                        • [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
+                                      <li key={i} style={{ marginBottom: '4px' }}>
+                                        [{issue.severity.toUpperCase()}] {issue.type}: {issue.description}
                                       </li>
                                     ))}
                                   </ul>
@@ -745,29 +3506,64 @@
                     </AnalysisSection>
 
                     <AnalysisSection title="Phase B: Statutory Framework & Cross-Reference Analysis" sectionId="phaseB">
-                      <div className="space-y-6 mt-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-blue-900 mb-3">Governing Statutory Framework</h4>
+                      <div style={{ marginTop: '16px' }}>
+                        <div style={{
+                          backgroundColor: '#eff6ff',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '16px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#1e40af',
+                            marginBottom: '12px'
+                          }}>Governing Statutory Framework</h4>
                           {analysisResults.phaseB.governingFramework.length > 0 ? (
-                            <div className="space-y-2">
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               {analysisResults.phaseB.governingFramework.map((framework, idx) => (
-                                <div key={idx} className="bg-white p-3 rounded text-sm">
-                                  <p className="font-medium text-gray-900">{framework.statute}</p>
-                                  <p className="text-gray-600">Source: {framework.source} | {framework.applicability}</p>
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  fontSize: '14px'
+                                }}>
+                                  <p style={{
+                                    fontWeight: '500',
+                                    color: '#111827'
+                                  }}>{framework.statute}</p>
+                                  <p style={{ color: '#6b7280' }}>
+                                    Source: {framework.source} | {framework.applicability}
+                                  </p>
                                 </div>
                               ))}
                             </div>
                           ) : (
-                            <p className="text-sm text-gray-600">No explicit statutory framework identified in documents</p>
+                            <p style={{ fontSize: '14px', color: '#6b7280' }}>
+                              No explicit statutory framework identified in documents
+                            </p>
                           )}
                         </div>
 
                         {analysisResults.phaseB.discrepancies.length > 0 && (
-                          <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-600">
-                            <h4 className="font-semibold text-red-900 mb-3">Discrepancies Identified</h4>
-                            <ul className="space-y-2">
+                          <div style={{
+                            backgroundColor: '#fef2f2',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: '4px solid #dc2626',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: '#7f1d1d',
+                              marginBottom: '12px'
+                            }}>Discrepancies Identified</h4>
+                            <ul style={{ paddingLeft: '20px' }}>
                               {analysisResults.phaseB.discrepancies.map((disc, idx) => (
-                                <li key={idx} className="text-sm text-red-800">
+                                <li key={idx} style={{
+                                  fontSize: '14px',
+                                  color: '#991b1b',
+                                  marginBottom: '8px'
+                                }}>
                                   <strong>[{disc.severity?.toUpperCase()}]</strong> {disc.type}: {disc.description}
                                 </li>
                               ))}
@@ -776,11 +3572,25 @@
                         )}
 
                         {analysisResults.phaseB.omissions.length > 0 && (
-                          <div className="bg-yellow-50 p-4 rounded-lg border-l-4 border-yellow-600">
-                            <h4 className="font-semibold text-yellow-900 mb-3">Omissions Detected</h4>
-                            <ul className="space-y-2">
+                          <div style={{
+                            backgroundColor: '#fef3c7',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: '4px solid #f59e0b',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: '#78350f',
+                              marginBottom: '12px'
+                            }}>Omissions Detected</h4>
+                            <ul style={{ paddingLeft: '20px' }}>
                               {analysisResults.phaseB.omissions.slice(0, 10).map((omission, idx) => (
-                                <li key={idx} className="text-sm text-yellow-800">
+                                <li key={idx} style={{
+                                  fontSize: '14px',
+                                  color: '#92400e',
+                                  marginBottom: '8px'
+                                }}>
                                   {omission.type}: <strong>{omission.element}</strong> - {omission.status}
                                 </li>
                               ))}
@@ -789,11 +3599,24 @@
                         )}
 
                         {analysisResults.phaseB.consistencies.length > 0 && (
-                          <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-600">
-                            <h4 className="font-semibold text-green-900 mb-3">Consistencies Confirmed</h4>
-                            <ul className="space-y-2">
+                          <div style={{
+                            backgroundColor: '#f0fdf4',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: '4px solid #16a34a'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: '#14532d',
+                              marginBottom: '12px'
+                            }}>Consistencies Confirmed</h4>
+                            <ul style={{ paddingLeft: '20px' }}>
                               {analysisResults.phaseB.consistencies.map((cons, idx) => (
-                                <li key={idx} className="text-sm text-green-800">
+                                <li key={idx} style={{
+                                  fontSize: '14px',
+                                  color: '#166534',
+                                  marginBottom: '8px'
+                                }}>
                                   {cons.type}: <strong>{cons.element}</strong> - {cons.status}
                                 </li>
                               ))}
@@ -803,64 +3626,185 @@
                       </div>
                     </AnalysisSection>
 
+                    <AnalysisSection title="🔗 Cross-Reference Matrix" sectionId="crossReference">
+                      <CrossReferenceMatrix analysis={analysisResults} />
+                    </AnalysisSection>
+
                     <AnalysisSection title="Phase C: Statutory Interpretation & Legislative Purpose" sectionId="phaseC">
-                      <div className="space-y-6 mt-4">
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-3">Interpretive Approaches Applied</h4>
+                      <div style={{ marginTop: '16px' }}>
+                        <div style={{
+                          backgroundColor: '#f9fafb',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '16px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#111827',
+                            marginBottom: '12px'
+                          }}>Interpretive Approaches Applied</h4>
                           
-                          <div className="space-y-4">
-                            <div className="bg-white p-4 rounded border-l-4 border-blue-600">
-                              <h5 className="font-medium text-blue-900 mb-2">{analysisResults.phaseC.literalInterpretation.approach}</h5>
-                              <p className="text-sm text-gray-700">{analysisResults.phaseC.literalInterpretation.findings}</p>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                            <div style={{
+                              backgroundColor: 'white',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              borderLeft: '4px solid #2563eb'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#1e40af',
+                                marginBottom: '8px'
+                              }}>{analysisResults.phaseC.literalInterpretation.approach}</h5>
+                              <p style={{
+                                fontSize: '14px',
+                                color: '#374151'
+                              }}>{analysisResults.phaseC.literalInterpretation.findings}</p>
                             </div>
 
-                            <div className="bg-white p-4 rounded border-l-4 border-purple-600">
-                              <h5 className="font-medium text-purple-900 mb-2">{analysisResults.phaseC.contextualInterpretation.approach}</h5>
-                              <p className="text-sm text-gray-700">{analysisResults.phaseC.contextualInterpretation.findings}</p>
+                            <div style={{
+                              backgroundColor: 'white',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              borderLeft: '4px solid #7c3aed'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#5b21b6',
+                                marginBottom: '8px'
+                              }}>{analysisResults.phaseC.contextualInterpretation.approach}</h5>
+                              <p style={{
+                                fontSize: '14px',
+                                color: '#374151'
+                              }}>{analysisResults.phaseC.contextualInterpretation.findings}</p>
                             </div>
 
-                            <div className="bg-white p-4 rounded border-l-4 border-green-600">
-                              <h5 className="font-medium text-green-900 mb-2">{analysisResults.phaseC.purposiveInterpretation.approach}</h5>
-                              <p className="text-sm text-gray-700">{analysisResults.phaseC.purposiveInterpretation.findings}</p>
+                            <div style={{
+                              backgroundColor: 'white',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              borderLeft: '4px solid #16a34a'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#14532d',
+                                marginBottom: '8px'
+                              }}>{analysisResults.phaseC.purposiveInterpretation.approach}</h5>
+                              <p style={{
+                                fontSize: '14px',
+                                color: '#374151'
+                              }}>{analysisResults.phaseC.purposiveInterpretation.findings}</p>
                             </div>
 
-                            <div className="bg-white p-4 rounded border-l-4 border-orange-600">
-                              <h5 className="font-medium text-orange-900 mb-2">{analysisResults.phaseC.harmonization.approach}</h5>
-                              <p className="text-sm text-gray-700">{analysisResults.phaseC.harmonization.findings}</p>
+                            <div style={{
+                              backgroundColor: 'white',
+                              padding: '16px',
+                              borderRadius: '4px',
+                              borderLeft: '4px solid #f59e0b'
+                            }}>
+                              <h5 style={{
+                                fontWeight: '500',
+                                color: '#78350f',
+                                marginBottom: '8px'
+                              }}>{analysisResults.phaseC.harmonization.approach}</h5>
+                              <p style={{
+                                fontSize: '14px',
+                                color: '#374151'
+                              }}>{analysisResults.phaseC.harmonization.findings}</p>
                             </div>
                           </div>
                         </div>
 
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-blue-900 mb-3">Interpretive Principles Applied</h4>
-                          <div className="space-y-2">
+                        <div style={{
+                          backgroundColor: '#eff6ff',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '16px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#1e40af',
+                            marginBottom: '12px'
+                          }}>Interpretive Principles Applied</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                             {analysisResults.phaseC.interpretativePrinciples.map((principle, idx) => (
-                              <div key={idx} className="bg-white p-3 rounded text-sm">
-                                <p className="font-medium text-gray-900">{principle.principle}</p>
-                                <p className="text-gray-600 mt-1">{principle.application}</p>
+                              <div key={idx} style={{
+                                backgroundColor: 'white',
+                                padding: '12px',
+                                borderRadius: '4px',
+                                fontSize: '14px'
+                              }}>
+                                <p style={{
+                                  fontWeight: '500',
+                                  color: '#111827'
+                                }}>{principle.principle}</p>
+                                <p style={{
+                                  color: '#6b7280',
+                                  marginTop: '4px'
+                                }}>{principle.application}</p>
                               </div>
                             ))}
                           </div>
                         </div>
 
-                        <div className="bg-purple-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-purple-900 mb-3">Extrinsic Aids Available</h4>
-                          <p className="text-sm text-purple-800 mb-2">{analysisResults.phaseC.extrinsicAids.application}</p>
-                          <ul className="space-y-1 text-sm text-purple-800">
+                        <div style={{
+                          backgroundColor: '#f5f3ff',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '16px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#5b21b6',
+                            marginBottom: '12px'
+                          }}>Extrinsic Aids Available</h4>
+                          <p style={{
+                            fontSize: '14px',
+                            color: '#6b21a8',
+                            marginBottom: '8px'
+                          }}>{analysisResults.phaseC.extrinsicAids.application}</p>
+                          <ul style={{
+                            fontSize: '14px',
+                            color: '#6b21a8',
+                            paddingLeft: '20px'
+                          }}>
                             {analysisResults.phaseC.extrinsicAids.availableAids.map((aid, idx) => (
-                              <li key={idx}>• {aid}</li>
+                              <li key={idx} style={{ marginBottom: '4px' }}>{aid}</li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="bg-gray-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-gray-900 mb-3">Ambiguity Resolution</h4>
-                          <div className="space-y-3">
+                        <div style={{
+                          backgroundColor: '#f9fafb',
+                          padding: '16px',
+                          borderRadius: '8px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#111827',
+                            marginBottom: '12px'
+                          }}>Ambiguity Resolution</h4>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                             {analysisResults.phaseC.resolutionOfAmbiguity.map((resolution, idx) => (
-                              <div key={idx} className="bg-white p-3 rounded text-sm border-l-4 border-gray-400">
-                                <p className="font-medium text-gray-900 mb-1">Ambiguity: {resolution.ambiguity}</p>
-                                <p className="text-gray-700 mb-1"><strong>Method:</strong> {resolution.resolutionMethod}</p>
-                                <p className="text-gray-700"><strong>Recommendation:</strong> {resolution.recommendation}</p>
+                              <div key={idx} style={{
+                                backgroundColor: 'white',
+                                padding: '12px',
+                                borderRadius: '4px',
+                                fontSize: '14px',
+                                borderLeft: '4px solid #9ca3af'
+                              }}>
+                                <p style={{
+                                  fontWeight: '500',
+                                  color: '#111827',
+                                  marginBottom: '4px'
+                                }}>Ambiguity: {resolution.ambiguity}</p>
+                                <p style={{
+                                  color: '#374151',
+                                  marginBottom: '4px'
+                                }}><strong>Method:</strong> {resolution.resolutionMethod}</p>
+                                <p style={{ color: '#374151' }}>
+                                  <strong>Recommendation:</strong> {resolution.recommendation}
+                                </p>
                               </div>
                             ))}
                           </div>
@@ -869,26 +3813,373 @@
                     </AnalysisSection>
 
                     <AnalysisSection title="Recommendations & Next Steps" sectionId="recommendations">
-                      <div className="space-y-4 mt-4">
-                        <div className="bg-blue-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-blue-900 mb-3">Strategic Recommendations</h4>
-                          <ul className="space-y-2 text-sm text-blue-800">
+                      <div style={{ marginTop: '16px' }}>
+                        <div style={{
+                          backgroundColor: '#eff6ff',
+                          padding: '16px',
+                          borderRadius: '8px',
+                          marginBottom: '16px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#1e40af',
+                            marginBottom: '12px'
+                          }}>Strategic Recommendations</h4>
+                          <ul style={{
+                            fontSize: '14px',
+                            color: '#1e40af',
+                            paddingLeft: '20px'
+                          }}>
                             {analysisResults.summary.recommendations.map((rec, idx) => (
-                              <li key={idx}>• {rec}</li>
+                              <li key={idx} style={{ marginBottom: '8px' }}>{rec}</li>
                             ))}
                           </ul>
                         </div>
 
-                        <div className="bg-green-50 p-4 rounded-lg">
-                          <h4 className="font-semibold text-green-900 mb-3">Proposed Next Steps</h4>
-                          <ol className="space-y-2 text-sm text-green-800 list-decimal list-inside">
+                        <div style={{
+                          backgroundColor: '#f0fdf4',
+                          padding: '16px',
+                          borderRadius: '8px'
+                        }}>
+                          <h4 style={{
+                            fontWeight: '600',
+                            color: '#14532d',
+                            marginBottom: '12px'
+                          }}>Proposed Next Steps</h4>
+                          <ol style={{
+                            fontSize: '14px',
+                            color: '#166534',
+                            paddingLeft: '20px'
+                          }}>
                             {analysisResults.summary.nextSteps.map((step, idx) => (
-                              <li key={idx}>{step}</li>
+                              <li key={idx} style={{ marginBottom: '8px' }}>{step}</li>
                             ))}
                           </ol>
                         </div>
                       </div>
                     </AnalysisSection>
+
+                    {historicalAnalyses.length > 0 && (
+                      <AnalysisSection title="📊 Defect Evolution Timeline" sectionId="timeline">
+                        <DefectTimeline analyses={historicalAnalyses} />
+                      </AnalysisSection>
+                    )}
+
+                    {detectedPatterns && detectedPatterns.recurring.length > 0 && (
+                      <AnalysisSection title="🔍 Pattern Recognition Analysis" sectionId="patterns">
+                        <div style={{ marginTop: '16px' }}>
+                          <div style={{
+                            backgroundColor: '#fef2f2',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: '4px solid #dc2626',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: '#7f1d1d',
+                              marginBottom: '12px'
+                            }}>Recurring Issues Detected</h4>
+                            <p style={{
+                              fontSize: '14px',
+                              color: '#991b1b',
+                              marginBottom: '12px'
+                            }}>
+                              The following issues have occurred multiple times across your analyses, indicating systematic problems that require attention:
+                            </p>
+
+                            {detectedPatterns.recurring.map((pattern, idx) => (
+                              <div key={idx} style={{
+                                backgroundColor: 'white',
+                                padding: '16px',
+                                borderRadius: '8px',
+                                marginBottom: '12px',
+                                border: '1px solid #fecaca'
+                              }}>
+                                <div style={{
+                                  display: 'flex',
+                                  justifyContent: 'space-between',
+                                  alignItems: 'start',
+                                  marginBottom: '8px'
+                                }}>
+                                  <h5 style={{
+                                    fontWeight: '600',
+                                    color: '#991b1b',
+                                    fontSize: '16px'
+                                  }}>{pattern.type}</h5>
+                                  <span style={{
+                                    backgroundColor: '#dc2626',
+                                    color: 'white',
+                                    padding: '4px 12px',
+                                    borderRadius: '12px',
+                                    fontSize: '12px',
+                                    fontWeight: '600'
+                                  }}>
+                                    {pattern.frequency}x
+                                  </span>
+                                </div>
+
+                                <p style={{
+                                  fontSize: '14px',
+                                  color: '#6b7280',
+                                  marginBottom: '8px'
+                                }}>
+                                  {pattern.description}
+                                </p>
+
+                                <div style={{
+                                  display: 'flex',
+                                  gap: '16px',
+                                  fontSize: '12px',
+                                  color: '#6b7280',
+                                  marginBottom: '12px'
+                                }}>
+                                  <div>
+                                    <strong>First Seen:</strong> {new Date(pattern.firstSeen).toLocaleDateString()}
+                                  </div>
+                                  <div>
+                                    <strong>Last Seen:</strong> {new Date(pattern.lastSeen).toLocaleDateString()}
+                                  </div>
+                                </div>
+
+                                <div style={{
+                                  backgroundColor: '#fffbeb',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  borderLeft: '4px solid #f59e0b'
+                                }}>
+                                  <strong style={{ color: '#78350f', fontSize: '13px' }}>💡 Recommendation:</strong>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    color: '#92400e',
+                                    marginTop: '4px'
+                                  }}>
+                                    {pattern.recommendation}
+                                  </p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {detectedPatterns.recurring.length === 0 && (
+                            <div style={{
+                              backgroundColor: '#f0fdf4',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              borderLeft: '4px solid #16a34a'
+                            }}>
+                              <p style={{
+                                fontSize: '14px',
+                                color: '#166534'
+                              }}>
+                                ✅ No recurring patterns detected. Continue monitoring future analyses for emerging trends.
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      </AnalysisSection>
+                    )}
+
+                    {contextualInsights && (
+                      <AnalysisSection title="🧠 Contextual Intelligence & Trend Analysis" sectionId="contextual">
+                        <div style={{ marginTop: '16px' }}>
+                          {/* Severity Comparison */}
+                          <div style={{
+                            backgroundColor: contextualInsights.severity.status === 'worse' ? '#fef2f2' :
+                                           contextualInsights.severity.status === 'better' ? '#f0fdf4' : '#eff6ff',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              contextualInsights.severity.status === 'worse' ? '#dc2626' :
+                              contextualInsights.severity.status === 'better' ? '#16a34a' : '#2563eb'
+                            }`,
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: contextualInsights.severity.status === 'worse' ? '#7f1d1d' :
+                                     contextualInsights.severity.status === 'better' ? '#14532d' : '#1e40af',
+                              marginBottom: '12px'
+                            }}>📊 Severity Comparison</h4>
+                            <p style={{
+                              fontSize: '14px',
+                              color: contextualInsights.severity.status === 'worse' ? '#991b1b' :
+                                     contextualInsights.severity.status === 'better' ? '#166534' : '#1e40af',
+                              marginBottom: '8px'
+                            }}>
+                              {contextualInsights.severity.message}
+                            </p>
+                            {contextualInsights.severity.data && (
+                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
+                                Current: {contextualInsights.severity.data.current} | Historical Average: {contextualInsights.severity.data.average}
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Trend Analysis */}
+                          <div style={{
+                            backgroundColor: contextualInsights.trend.direction === 'worsening' ? '#fef2f2' :
+                                           contextualInsights.trend.direction === 'improving' ? '#f0fdf4' : '#eff6ff',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            borderLeft: `4px solid ${
+                              contextualInsights.trend.direction === 'worsening' ? '#dc2626' :
+                              contextualInsights.trend.direction === 'improving' ? '#16a34a' : '#2563eb'
+                            }`,
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{
+                              fontWeight: '600',
+                              color: contextualInsights.trend.direction === 'worsening' ? '#7f1d1d' :
+                                     contextualInsights.trend.direction === 'improving' ? '#14532d' : '#1e40af',
+                              marginBottom: '12px'
+                            }}>📈 Trend Analysis</h4>
+                            <p style={{
+                              fontSize: '14px',
+                              color: contextualInsights.trend.direction === 'worsening' ? '#991b1b' :
+                                     contextualInsights.trend.direction === 'improving' ? '#166534' : '#1e40af'
+                            }}>
+                              {contextualInsights.trend.message}
+                            </p>
+                            {contextualInsights.trend.data && (
+                              <div style={{ fontSize: '12px', color: '#6b7280', marginTop: '8px' }}>
+                                Based on {contextualInsights.trend.data.samples} recent analyses
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Smart Recommendations */}
+                          {contextualInsights.recommendations && contextualInsights.recommendations.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fffbeb',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              borderLeft: '4px solid #f59e0b',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{
+                                fontWeight: '600',
+                                color: '#78350f',
+                                marginBottom: '12px'
+                              }}>💡 Smart Recommendations</h4>
+                              <p style={{
+                                fontSize: '13px',
+                                color: '#92400e',
+                                marginBottom: '12px'
+                              }}>
+                                Based on analysis of current and historical data, here are intelligent recommendations:
+                              </p>
+                              {contextualInsights.recommendations.map((rec, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '12px',
+                                  borderRadius: '4px',
+                                  marginBottom: '8px',
+                                  border: '1px solid #fde68a'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    justifyContent: 'space-between',
+                                    alignItems: 'start',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{
+                                      fontSize: '14px',
+                                      color: '#78350f'
+                                    }}>{rec.category}</strong>
+                                    <span style={{
+                                      padding: '2px 8px',
+                                      borderRadius: '8px',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      backgroundColor: rec.priority === 'high' ? '#fee2e2' :
+                                                      rec.priority === 'medium' ? '#fef3c7' : '#dbeafe',
+                                      color: rec.priority === 'high' ? '#991b1b' :
+                                             rec.priority === 'medium' ? '#92400e' : '#1e40af'
+                                    }}>
+                                      {rec.priority.toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    color: '#374151',
+                                    marginBottom: '6px'
+                                  }}>
+                                    {rec.recommendation}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '12px',
+                                    color: '#6b7280',
+                                    fontStyle: 'italic'
+                                  }}>
+                                    Expected Impact: {rec.impact}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Novel Issues */}
+                          {contextualInsights.novelIssues && contextualInsights.novelIssues.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fef3c7',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              borderLeft: '4px solid #f59e0b'
+                            }}>
+                              <h4 style={{
+                                fontWeight: '600',
+                                color: '#78350f',
+                                marginBottom: '12px'
+                              }}>🆕 Novel Issues Detected</h4>
+                              <p style={{
+                                fontSize: '13px',
+                                color: '#92400e',
+                                marginBottom: '12px'
+                              }}>
+                                The following issue types have not been seen in previous analyses:
+                              </p>
+                              {contextualInsights.novelIssues.map((issue, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '10px',
+                                  borderRadius: '4px',
+                                  marginBottom: '8px',
+                                  border: '1px solid #fde68a'
+                                }}>
+                                  <div style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    marginBottom: '4px'
+                                  }}>
+                                    <span style={{
+                                      padding: '2px 8px',
+                                      borderRadius: '8px',
+                                      fontSize: '11px',
+                                      fontWeight: '600',
+                                      backgroundColor: getColorForSeverity(issue.severity),
+                                      border: '1px solid #e5e7eb'
+                                    }}>
+                                      {issue.severity.toUpperCase()}
+                                    </span>
+                                    <strong style={{ fontSize: '13px', color: '#111827' }}>
+                                      {issue.type}
+                                    </strong>
+                                  </div>
+                                  <p style={{ fontSize: '12px', color: '#6b7280' }}>
+                                    {issue.description}
+                                  </p>
+                                  <p style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+                                    Detected in: {issue.preset}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      </AnalysisSection>
+                    )}
                   </div>
                 )}
               </div>
