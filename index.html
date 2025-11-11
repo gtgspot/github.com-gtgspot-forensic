@@ -1587,13 +1587,20 @@
             await new Promise(resolve => setTimeout(resolve, 2000));
 
             const phaseCResults = performStatutoryInterpretation(phaseAResults, phaseBResults);
+            setAnalysisProgress(70);
+
+            setCurrentPhase('Phase D: Victorian Magistrates\' Court Criminal Procedure Analysis');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            const phaseDResults = performMagistratesCourtAnalysis(phaseAResults, phaseBResults, phaseCResults);
             setAnalysisProgress(80);
 
             const finalResults = {
               phaseA: phaseAResults,
               phaseB: phaseBResults,
               phaseC: phaseCResults,
-              summary: generateExecutiveSummary(phaseAResults, phaseBResults, phaseCResults)
+              phaseD: phaseDResults,
+              summary: generateExecutiveSummary(phaseAResults, phaseBResults, phaseCResults, phaseDResults)
             };
 
             setAnalysisResults(finalResults);
@@ -4126,30 +4133,1414 @@
             };
           };
 
-          const generateExecutiveSummary = (phaseA, phaseB, phaseC) => {
+          // =============================================================================
+          // PHASE D: VICTORIAN MAGISTRATES' COURT CRIMINAL PROCEDURE ANALYSIS
+          // =============================================================================
+
+          const performMagistratesCourtAnalysis = (phaseAResults, phaseBResults, phaseCResults) => {
+            const contentA = fileContents.fileA || '';
+            const contentB = fileContents.fileB || '';
+            const combinedContent = contentA + '\n' + contentB;
+
+            // 1. COURT-SPECIFIC DEFECT CATEGORIZATION
+            const defectCategories = categorizeDefects(phaseAResults, phaseBResults, contentA, contentB);
+
+            // 2. MAGISTRATES' COURT PROCEDURE COMPLIANCE
+            const procedureCompliance = checkMagistratesCourtProcedure(combinedContent, defectCategories);
+
+            // 3. RSA 1986 SPECIFIC CHECKLIST
+            const rsaCompliance = performRSAChecklist(combinedContent);
+
+            // 4. DISCLOSURE COMPLIANCE MATRIX (CPA 2009 Part 3.3)
+            const disclosureCompliance = checkDisclosureCompliance(combinedContent);
+
+            // 5. COURT-READY SUBMISSIONS GENERATOR
+            const courtSubmissions = generateCourtReadySubmissions(defectCategories, rsaCompliance, disclosureCompliance);
+
+            // 6. CASE-SPECIFIC LEARNING FRAMEWORK
+            const learningInsights = analyzeCasePatterns(defectCategories);
+
+            return {
+              defectCategories,
+              procedureCompliance,
+              rsaCompliance,
+              disclosureCompliance,
+              courtSubmissions,
+              learningInsights
+            };
+          };
+
+          // 1. DEFECT CATEGORIZATION SYSTEM
+          const categorizeDefects = (phaseAResults, phaseBResults, contentA, contentB) => {
+            const categories = {
+              categoryA_Jurisdictional: [],
+              categoryB_Procedural: [],
+              categoryC_Evidentiary: [],
+              categoryD_Factual: []
+            };
+
+            // CATEGORY A: Jurisdictional Defects (Court lacks authority)
+
+            // A1: Missing statutory authority
+            const statutoryAuthMatches = checkPattern(contentA + contentB, /pursuant to|under (section|s\.)\s*\d+|authorized by/gi);
+            if (statutoryAuthMatches.count === 0) {
+              categories.categoryA_Jurisdictional.push({
+                defectId: 'A1',
+                title: 'Missing Statutory Authority Citation',
+                description: 'No statutory authority cited for actions taken',
+                severity: 'CRITICAL',
+                legalConsequence: 'Court may lack jurisdiction to proceed - decision may be void ab initio',
+                evidence: 'No references to statutory authority found in either document',
+                remedy: 'Prosecution must identify and cite specific statutory provision authorizing action'
+              });
+            }
+
+            // A2: Offense not within summary jurisdiction
+            const indictableIndicators = checkPattern(contentA + contentB, /indictable|higher court|committal|county court/gi);
+            if (indictableIndicators.count > 0) {
+              categories.categoryA_Jurisdictional.push({
+                defectId: 'A2',
+                title: 'Potential Jurisdictional Limitation',
+                description: 'Document references indictable offenses or higher court matters',
+                severity: 'HIGH',
+                legalConsequence: 'Magistrates\' Court may lack summary jurisdiction',
+                evidence: indictableIndicators.matches.slice(0, 3).join('; '),
+                remedy: 'Verify offense is summary or summarily triable under CPA s.28 or 29'
+              });
+            }
+
+            // A3: Time limit issues
+            const timeLimitMatches = checkPattern(contentA + contentB, /time.*limit|statute.*limitation|prescribed time|within.*months/gi);
+            if (timeLimitMatches.count > 0) {
+              categories.categoryA_Jurisdictional.push({
+                defectId: 'A3',
+                title: 'Time Limitation Period Referenced',
+                description: 'Document mentions time limits for prosecution',
+                severity: 'HIGH',
+                legalConsequence: 'Prosecution outside limitation period is void for want of jurisdiction',
+                evidence: timeLimitMatches.matches.slice(0, 3).join('; '),
+                remedy: 'Verify prosecution commenced within limitation period under CPA s.7 or relevant statute'
+              });
+            }
+
+            // CATEGORY B: Procedural Defects (Process not followed)
+
+            // B1: Disclosure non-compliance (CPA Part 3.3)
+            const disclosureDefects = identifyDisclosureDefects(contentA, contentB);
+            categories.categoryB_Procedural.push(...disclosureDefects);
+
+            // B2: Missing s.49 preliminary test prerequisites
+            const s49Prerequisites = checks49Prerequisites(contentA, contentB);
+            if (s49Prerequisites.defects.length > 0) {
+              categories.categoryB_Procedural.push(...s49Prerequisites.defects);
+            }
+
+            // B3: Absent s.55D/55E compliance
+            const s55Compliance = checks55DECompliance(contentA, contentB);
+            if (s55Compliance.defects.length > 0) {
+              categories.categoryB_Procedural.push(...s55Compliance.defects);
+            }
+
+            // B4: Unsigned/undated documents
+            const documentValidation = checkDocumentFormalities(contentA, contentB);
+            categories.categoryB_Procedural.push(...documentValidation);
+
+            // B5: Missing service evidence
+            const serviceEvidence = checkServiceEvidence(contentA, contentB);
+            if (serviceEvidence.defects.length > 0) {
+              categories.categoryB_Procedural.push(...serviceEvidence.defects);
+            }
+
+            // CATEGORY C: Evidentiary Defects
+
+            // C1: Hearsay without exception (Evidence Act s.59)
+            const hearsayDefects = identifyHearsayDefects(contentA, contentB);
+            categories.categoryC_Evidentiary.push(...hearsayDefects);
+
+            // C2: Opinion evidence without expertise (s.76-79)
+            const opinionDefects = identifyOpinionDefects(contentA, contentB);
+            categories.categoryC_Evidentiary.push(...opinionDefects);
+
+            // C3: Improperly obtained evidence (s.138)
+            const improperEvidence = checkImproperlyObtainedEvidence(contentA, contentB);
+            if (improperEvidence.defects.length > 0) {
+              categories.categoryC_Evidentiary.push(...improperEvidence.defects);
+            }
+
+            // C4: Unfairly prejudicial evidence (s.137)
+            const prejudicialEvidence = checkUnfairlyPrejudicialEvidence(contentA, contentB);
+            categories.categoryC_Evidentiary.push(...prejudicialEvidence);
+
+            // C5: Missing authentication (s.48 certification)
+            const authenticationDefects = checkAuthentication(contentA, contentB);
+            categories.categoryC_Evidentiary.push(...authenticationDefects);
+
+            // C6: Insufficient proper performance evidence (RSA s.55E)
+            const properPerformanceDefects = checkProperPerformanceEvidence(contentA, contentB);
+            categories.categoryC_Evidentiary.push(...properPerformanceDefects);
+
+            // CATEGORY D: Factual Defects
+
+            // D1: Timeline contradictions
+            const timelineDefects = identifyTimelineContradictions(contentA, contentB);
+            categories.categoryD_Factual.push(...timelineDefects);
+
+            // D2: Conflicting statements
+            const conflictingStatements = phaseBResults.discrepancies.map(disc => ({
+              defectId: 'D2',
+              title: 'Conflicting Statement Between Documents',
+              description: disc.description,
+              severity: 'MEDIUM',
+              legalConsequence: 'Inconsistencies may affect witness credibility and weight of evidence',
+              evidence: disc.details,
+              remedy: 'Reconcile conflict through cross-examination or additional evidence'
+            }));
+            categories.categoryD_Factual.push(...conflictingStatements);
+
+            // D3: Missing critical facts
+            const missingFacts = identifyMissingCriticalFacts(contentA, contentB);
+            categories.categoryD_Factual.push(...missingFacts);
+
+            return categories;
+          };
+
+          // Helper functions for defect categorization
+
+          const checkPattern = (content, pattern) => {
+            const matches = content.match(pattern) || [];
+            return {
+              count: matches.length,
+              matches: matches
+            };
+          };
+
+          const identifyDisclosureDefects = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            const requiredDisclosure = [
+              { item: 'informant statement', pattern: /informant.*statement|statement.*informant/gi, section: 's.187(1)(a)' },
+              { item: 'witness statements', pattern: /witness.*statement|statement.*witness/gi, section: 's.187(1)(b)' },
+              { item: 'exhibits list', pattern: /exhibit|list.*exhibit/gi, section: 's.187(1)(c)' },
+              { item: 'prior convictions', pattern: /prior.*conviction|criminal.*history|antecedent/gi, section: 's.187(1)(d)' }
+            ];
+
+            requiredDisclosure.forEach(req => {
+              const found = combined.match(req.pattern);
+              if (!found || found.length === 0) {
+                defects.push({
+                  defectId: 'B1',
+                  title: `Missing Disclosure: ${req.item}`,
+                  description: `No reference to ${req.item} in either document`,
+                  severity: 'HIGH',
+                  legalConsequence: `Breach of mandatory disclosure requirement - CPA 2009 ${req.section}`,
+                  evidence: `No mention of ${req.item} found`,
+                  remedy: `Prosecution must provide ${req.item} per CPA Part 3.3 or seek direction from Magistrate`
+                });
+              }
+            });
+
+            return defects;
+          };
+
+          const checks49Prerequisites = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            // Check for "reason to believe" basis
+            const reasonToBelieve = combined.match(/reason to believe|reasonable.*belief/gi);
+            if (!reasonToBelieve) {
+              defects.push({
+                defectId: 'B2',
+                title: 'Missing s.49 "Reason to Believe" Basis',
+                description: 'No evidence of required "reason to believe" for preliminary test',
+                severity: 'CRITICAL',
+                legalConsequence: 'Preliminary test unlawful without proper statutory basis - RSA s.49(1)',
+                evidence: 'No statement of belief or grounds for belief found',
+                remedy: 'Officer must articulate specific observations under s.49(1)(a)-(h) forming basis for belief',
+                statutoryReference: 'Road Safety Act 1986 s.49(1): Officer must have reason to believe one of enumerated circumstances exists'
+              });
+            }
+
+            // Check for specific indicators under s.49(1)(a)-(h)
+            const indicators = [
+              'smell.*alcohol',
+              'bloodshot.*eyes',
+              'slurred.*speech',
+              'unsteady.*gait',
+              'affected.*driving',
+              'accident',
+              'random.*breath.*test',
+              'drug.*affected'
+            ];
+
+            const foundIndicators = indicators.filter(ind => new RegExp(ind, 'gi').test(combined));
+            if (foundIndicators.length === 0) {
+              defects.push({
+                defectId: 'B2a',
+                title: 'Missing Specific s.49(1) Indicators',
+                description: 'No specific factual circumstances identified under s.49(1)(a)-(h)',
+                severity: 'CRITICAL',
+                legalConsequence: 'Insufficient basis for preliminary test - bare assertion insufficient',
+                evidence: 'No enumerated circumstances under s.49(1)(a)-(h) documented',
+                remedy: 'Officer must identify which specific circumstance(s) under s.49(1)(a)-(h) were present',
+                statutoryReference: 'RSA s.49(1)(a)-(h) exhaustively lists circumstances authorizing preliminary test'
+              });
+            }
+
+            return { defects };
+          };
+
+          const checks55DECompliance = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            // s.55D(1): "in accordance with directions"
+            const directionsCompliance = combined.match(/in accordance with|directions.*use|followed.*directions/gi);
+            if (!directionsCompliance) {
+              defects.push({
+                defectId: 'B3',
+                title: 'Missing s.55D(1) Directions Compliance Evidence',
+                description: 'No evidence test conducted "in accordance with directions"',
+                severity: 'CRITICAL',
+                legalConsequence: 'Test result inadmissible without proof of s.55D(1) compliance',
+                evidence: 'No mention of directions or compliance with directions',
+                remedy: 'Officer must prove specific directions for device use were followed',
+                statutoryReference: 'RSA s.55D(1): test must be conducted "in accordance with the directions for use"'
+              });
+            }
+
+            // s.55D(2): Oral/written directions requirement
+            const directionsGiven = combined.match(/oral.*direction|written.*direction|directions.*given|instructed/gi);
+            if (!directionsGiven) {
+              defects.push({
+                defectId: 'B3a',
+                title: 'Missing s.55D(2) Directions Evidence',
+                description: 'No evidence oral or written directions provided to subject',
+                severity: 'HIGH',
+                legalConsequence: 'Failure to provide directions may vitiate test - s.55D(2) requirement',
+                evidence: 'No mention of giving directions to subject',
+                remedy: 'Officer must prove gave oral directions (if literate) or written (if not literate in English) per s.55D(2)',
+                statutoryReference: 'RSA s.55D(2): Officer must give oral or written directions depending on literacy'
+              });
+            }
+
+            // s.55E: Proper performance presumption requirements
+            const properPerformance = {
+              approved: combined.match(/approved.*device|device.*approved/gi),
+              designed: combined.match(/used as designed|designed.*use/gi),
+              working: combined.match(/working order|properly.*functioning/gi),
+              maintained: combined.match(/properly maintained|maintenance.*record/gi)
+            };
+
+            if (!properPerformance.approved) {
+              defects.push({
+                defectId: 'B3b',
+                title: 'Missing s.55E "Approved Device" Evidence',
+                description: 'No evidence device was approved under RSA',
+                severity: 'HIGH',
+                legalConsequence: 'Cannot rely on s.55E presumption without proof of approved device',
+                evidence: 'No mention of device approval status',
+                remedy: 'Prosecution must prove device approved by Governor in Council under RSA',
+                statutoryReference: 'RSA s.55E: Presumption only applies if device approved for use under Act'
+              });
+            }
+
+            if (!properPerformance.working) {
+              defects.push({
+                defectId: 'B3c',
+                title: 'Missing s.55E "Working Order" Evidence',
+                description: 'No evidence device was in working order',
+                severity: 'HIGH',
+                legalConsequence: 'Cannot rely on s.55E presumption - must prove device working order',
+                evidence: 'No mention of device functionality testing or working order',
+                remedy: 'Officer must provide evidence device was tested and functioning correctly',
+                statutoryReference: 'RSA s.55E: Presumption requires device "is in working order"'
+              });
+            }
+
+            if (!properPerformance.maintained) {
+              defects.push({
+                defectId: 'B3d',
+                title: 'Missing s.55E "Properly Maintained" Evidence',
+                description: 'No evidence device was properly maintained',
+                severity: 'MEDIUM',
+                legalConsequence: 'Weakens s.55E presumption - maintenance evidence typically required',
+                evidence: 'No maintenance records or maintenance verification mentioned',
+                remedy: 'Prosecution should provide maintenance logs or certificate of calibration',
+                statutoryReference: 'RSA s.55E: Presumption requires device "has been properly maintained"'
+              });
+            }
+
+            return { defects };
+          };
+
+          const checkDocumentFormalities = (contentA, contentB) => {
+            const defects = [];
+
+            // Check for signatures
+            const signaturesA = contentA.match(/signed|signature|sworn|declared/gi);
+            const signaturesB = contentB.match(/signed|signature|sworn|declared/gi);
+
+            if (!signaturesA) {
+              defects.push({
+                defectId: 'B4',
+                title: 'Document A: Missing Signature Evidence',
+                description: 'No indication Document A is signed, sworn, or declared',
+                severity: 'MEDIUM',
+                legalConsequence: 'Unsigned document may not be admissible as sworn evidence',
+                evidence: 'No reference to signature, oath, or affirmation in Document A',
+                remedy: 'Verify document properly executed and signed per Evidence Act requirements'
+              });
+            }
+
+            // Check for dates
+            const datesA = contentA.match(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}/gi);
+            const datesB = contentB.match(/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}/gi);
+
+            if (!datesA || datesA.length === 0) {
+              defects.push({
+                defectId: 'B4a',
+                title: 'Document A: Missing Date',
+                description: 'No date identified in Document A',
+                severity: 'MEDIUM',
+                legalConsequence: 'Undated document raises authenticity and reliability concerns',
+                evidence: 'No date found in Document A',
+                remedy: 'Document should be dated when created/signed'
+              });
+            }
+
+            if (!datesB || datesB.length === 0) {
+              defects.push({
+                defectId: 'B4b',
+                title: 'Document B: Missing Date',
+                description: 'No date identified in Document B',
+                severity: 'MEDIUM',
+                legalConsequence: 'Undated document raises authenticity and reliability concerns',
+                evidence: 'No date found in Document B',
+                remedy: 'Document should be dated when created/signed'
+              });
+            }
+
+            return defects;
+          };
+
+          const checkServiceEvidence = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            const serviceIndicators = combined.match(/served|service|provided.*copy|delivered|received/gi);
+            if (!serviceIndicators) {
+              defects.push({
+                defectId: 'B5',
+                title: 'Missing Evidence of Service',
+                description: 'No evidence documents served on accused/defendant',
+                severity: 'MEDIUM',
+                legalConsequence: 'Procedural irregularity - accused must be properly served per CPA',
+                evidence: 'No mention of service, delivery, or provision of documents',
+                remedy: 'Prosecution must prove service per CPA Part 2.4 (ss.28-35)'
+              });
+            }
+
+            return { defects };
+          };
+
+          const identifyHearsayDefects = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            // Look for hearsay indicators
+            const hearsayIndicators = [
+              { pattern: /told.*me|informed.*me|said.*to.*me|stated.*to.*me/gi, description: 'out-of-court statement relayed by witness' },
+              { pattern: /according to|as per|based on.*information/gi, description: 'reliance on second-hand information' },
+              { pattern: /report.*indicated|document.*states|record.*shows/gi, description: 'reliance on documentary hearsay' }
+            ];
+
+            hearsayIndicators.forEach(indicator => {
+              const matches = combined.match(indicator.pattern);
+              if (matches && matches.length > 0) {
+                defects.push({
+                  defectId: 'C1',
+                  title: 'Potential Hearsay Evidence',
+                  description: `Document contains ${indicator.description}`,
+                  severity: 'HIGH',
+                  legalConsequence: 'Hearsay inadmissible unless exception applies - Evidence Act s.59',
+                  evidence: matches.slice(0, 2).join('; '),
+                  remedy: 'Prosecution must identify applicable hearsay exception (ss.60-75) or call original source as witness',
+                  statutoryReference: 'Evidence Act 2008 s.59: Hearsay rule - evidence of previous representation inadmissible to prove asserted fact'
+                });
+              }
+            });
+
+            return defects;
+          };
+
+          const identifyOpinionDefects = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            // Look for opinion evidence without expertise qualification
+            const opinionIndicators = /appears to|seemed|looked like|in my opinion|I believe|my view/gi;
+            const expertiseIndicators = /qualified|expert|specialist|training|experience.*years/gi;
+
+            const opinions = combined.match(opinionIndicators);
+            const expertise = combined.match(expertiseIndicators);
+
+            if (opinions && opinions.length > 0 && (!expertise || expertise.length === 0)) {
+              defects.push({
+                defectId: 'C2',
+                title: 'Opinion Evidence Without Expertise Foundation',
+                description: 'Document contains opinion evidence without establishing expertise',
+                severity: 'MEDIUM',
+                legalConsequence: 'Opinion evidence inadmissible without proof of expertise - Evidence Act ss.76-79',
+                evidence: opinions.slice(0, 3).join('; '),
+                remedy: 'Witness must be qualified as expert (s.79) or opinion must be lay opinion based on perception (s.78)',
+                statutoryReference: 'Evidence Act 2008 s.76: Opinion rule - opinion evidence inadmissible unless exception'
+              });
+            }
+
+            return defects;
+          };
+
+          const checkImproperlyObtainedEvidence = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            const improperIndicators = [
+              'unlawful',
+              'illegal.*obtained',
+              'warrant.*expired',
+              'without.*consent',
+              'improper',
+              'unlawfully',
+              'breach.*of.*rights'
+            ];
+
+            improperIndicators.forEach(indicator => {
+              const pattern = new RegExp(indicator, 'gi');
+              const matches = combined.match(pattern);
+              if (matches) {
+                defects.push({
+                  defectId: 'C3',
+                  title: 'Potential Improperly Obtained Evidence',
+                  description: `Reference to ${indicator} in documents`,
+                  severity: 'CRITICAL',
+                  legalConsequence: 'Evidence may be excluded under Evidence Act s.138 discretion',
+                  evidence: matches.slice(0, 2).join('; '),
+                  remedy: 'Defence should apply to exclude under s.138 - court must weigh probative value vs public interest',
+                  statutoryReference: 'Evidence Act 2008 s.138: Discretion to exclude improperly or illegally obtained evidence'
+                });
+              }
+            });
+
+            return { defects };
+          };
+
+          const checkUnfairlyPrejudicialEvidence = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            const prejudicialIndicators = [
+              'criminal.*history',
+              'prior.*conviction',
+              'bad.*character',
+              'previous.*offense',
+              'similar.*fact'
+            ];
+
+            prejudicialIndicators.forEach(indicator => {
+              const pattern = new RegExp(indicator, 'gi');
+              const matches = combined.match(pattern);
+              if (matches) {
+                defects.push({
+                  defectId: 'C4',
+                  title: 'Potential Unfairly Prejudicial Evidence',
+                  description: `Reference to ${indicator} may be prejudicial`,
+                  severity: 'MEDIUM',
+                  legalConsequence: 'Evidence may be excluded if probative value outweighed by prejudicial effect - Evidence Act s.137',
+                  evidence: matches.slice(0, 2).join('; '),
+                  remedy: 'Defence should apply under s.137 for exclusion if evidence unfairly prejudicial',
+                  statutoryReference: 'Evidence Act 2008 s.137: Mandatory exclusion if probative value outweighed by unfair prejudice'
+                });
+              }
+            });
+
+            return defects;
+          };
+
+          const checkAuthentication = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            // Check for certificates under s.48 RSA
+            const certificateIndicators = combined.match(/certificate|certify|certified|sworn.*statement/gi);
+            const breathTestRefs = combined.match(/breath.*test|breath.*analysis|evidentiary.*test/gi);
+
+            if (breathTestRefs && breathTestRefs.length > 0 && (!certificateIndicators || certificateIndicators.length === 0)) {
+              defects.push({
+                defectId: 'C5',
+                title: 'Missing s.48 Certificate for Breath Test',
+                description: 'Breath test referenced but no s.48 certificate mentioned',
+                severity: 'CRITICAL',
+                legalConsequence: 'Breath test result inadmissible without s.48 certificate - fundamental requirement',
+                evidence: 'Breath test mentioned but no reference to certificate',
+                remedy: 'Prosecution must tender s.48 certificate signed by testing officer',
+                statutoryReference: 'RSA s.48: Certificate in prescribed form is evidence of facts stated - mandatory for evidentiary tests'
+              });
+            }
+
+            return defects;
+          };
+
+          const checkProperPerformanceEvidence = (contentA, contentB) => {
+            const defects = [];
+            const combined = contentA + contentB;
+
+            const performanceElements = {
+              calibration: combined.match(/calibrat|calibration|accuracy.*check/gi),
+              testing: combined.match(/test.*device|device.*test|self.*test/gi),
+              certification: combined.match(/certifi.*device|device.*certified/gi),
+              errorChecks: combined.match(/error.*message|fault|malfunction/gi)
+            };
+
+            if (!performanceElements.calibration && !performanceElements.testing) {
+              defects.push({
+                defectId: 'C6',
+                title: 'Insufficient Proper Performance Evidence (s.55E)',
+                description: 'No evidence of device calibration, testing, or accuracy verification',
+                severity: 'HIGH',
+                legalConsequence: 'Cannot establish s.55E presumption without proper performance evidence',
+                evidence: 'No mention of calibration, testing, or device performance verification',
+                remedy: 'Prosecution should provide calibration records, testing protocols, or maintenance logs',
+                statutoryReference: 'RSA s.55E: Proper performance presumption requires evidence device maintained and working'
+              });
+            }
+
+            return defects;
+          };
+
+          const identifyTimelineContradictions = (contentA, contentB) => {
+            const defects = [];
+
+            // Extract times from both documents
+            const timePattern = /\d{1,2}:\d{2}\s*(?:am|pm)?|\d{1,2}\s*(?:am|pm)/gi;
+            const timesA = contentA.match(timePattern) || [];
+            const timesB = contentB.match(timePattern) || [];
+
+            if (timesA.length > 0 && timesB.length > 0) {
+              // Simple check: if documents have different times, flag for review
+              const uniqueTimesA = [...new Set(timesA.map(t => t.toLowerCase()))];
+              const uniqueTimesB = [...new Set(timesB.map(t => t.toLowerCase()))];
+
+              const commonTimes = uniqueTimesA.filter(t => uniqueTimesB.includes(t));
+
+              if (commonTimes.length === 0 && timesA.length > 0 && timesB.length > 0) {
+                defects.push({
+                  defectId: 'D1',
+                  title: 'Timeline Discrepancy Between Documents',
+                  description: 'Documents contain different times with no common timepoints',
+                  severity: 'MEDIUM',
+                  legalConsequence: 'Timeline inconsistencies may affect credibility and reliability of evidence',
+                  evidence: `Document A times: ${uniqueTimesA.slice(0, 3).join(', ')}; Document B times: ${uniqueTimesB.slice(0, 3).join(', ')}`,
+                  remedy: 'Reconcile timeline through cross-examination or explanatory evidence'
+                });
+              }
+            }
+
+            // Check for sequence contradictions
+            const sequenceIndicators = ['first', 'then', 'next', 'after', 'before', 'finally', 'subsequently'];
+            const hasSequenceA = sequenceIndicators.some(ind => new RegExp('\\b' + ind + '\\b', 'i').test(contentA));
+            const hasSequenceB = sequenceIndicators.some(ind => new RegExp('\\b' + ind + '\\b', 'i').test(contentB));
+
+            if (hasSequenceA && hasSequenceB) {
+              defects.push({
+                defectId: 'D1a',
+                title: 'Potential Event Sequence Inconsistency',
+                description: 'Both documents describe sequences of events - verify consistency',
+                severity: 'LOW',
+                legalConsequence: 'Sequence inconsistencies may undermine narrative reliability',
+                evidence: 'Sequential indicators found in both documents',
+                remedy: 'Compare event sequences in detail to identify any contradictions'
+              });
+            }
+
+            return defects;
+          };
+
+          const identifyMissingCriticalFacts = (contentA, contentB) => {
+            const defects = [];
+
+            // Critical facts for criminal matters
+            const criticalElements = [
+              { element: 'location', pattern: /\bat\b.*(?:street|road|avenue|court|place|location|address)/gi, description: 'Location/venue of alleged offense' },
+              { element: 'date', pattern: /\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}|\d{1,2}\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s+\d{4}/gi, description: 'Date of alleged offense' },
+              { element: 'accused identification', pattern: /accused|defendant|charged|suspect|named/gi, description: 'Identification of accused person' },
+              { element: 'offense description', pattern: /offense|offence|charge|alleged|committed/gi, description: 'Description of alleged offense' }
+            ];
+
+            const combined = contentA + contentB;
+
+            criticalElements.forEach(elem => {
+              const found = combined.match(elem.pattern);
+              if (!found || found.length === 0) {
+                defects.push({
+                  defectId: 'D3',
+                  title: `Missing Critical Element: ${elem.description}`,
+                  description: `Neither document clearly establishes ${elem.element}`,
+                  severity: 'HIGH',
+                  legalConsequence: 'Prosecution must prove all elements of offense - gaps may be fatal to case',
+                  evidence: `No clear reference to ${elem.element} found`,
+                  remedy: `Prosecution must provide evidence of ${elem.element}`
+                });
+              }
+            });
+
+            return defects;
+          };
+
+          // 2. MAGISTRATES' COURT PROCEDURE CHECKER
+          const checkMagistratesCourtProcedure = (content, defectCategories) => {
+            const procedureStages = {
+              contestMention: {
+                stage: 'Contest Mention',
+                requirements: [
+                  { item: 'Charge sheet filed', status: checkRequirement(content, /charge.*sheet|information.*filed/gi) },
+                  { item: 'Disclosure provided (s.186 CPA)', status: checkRequirement(content, /disclosure|witness.*statement/gi) },
+                  { item: 'Plea indicated', status: checkRequirement(content, /plea|not guilty|guilty/gi) },
+                  { item: 'Notice of defences (s.185 CPA)', status: checkRequirement(content, /notice|alibi|defence/gi) }
+                ],
+                overallCompliance: 'PARTIAL'
+              },
+              summaryCaseConference: {
+                stage: 'Summary Case Conference',
+                requirements: [
+                  { item: 'Issues identified and narrowed', status: checkRequirement(content, /issue|dispute|contention/gi) },
+                  { item: 'Admissions made', status: checkRequirement(content, /admission|admit|agreed/gi) },
+                  { item: 'Disclosure complete', status: checkRequirement(content, /complete.*disclosure|disclosure.*complete/gi) }
+                ],
+                overallCompliance: 'UNKNOWN'
+              },
+              summaryHearing: {
+                stage: 'Summary Hearing',
+                requirements: [
+                  { item: 'Case outline filed', status: checkRequirement(content, /outline|summary.*case/gi) },
+                  { item: 'Witness availability confirmed', status: checkRequirement(content, /witness.*available|subpoena/gi) },
+                  { item: 'Voir dire applications foreshadowed', status: checkRequirement(content, /voir dire|admissibility|object/gi) }
+                ],
+                overallCompliance: 'NOT_COMMENCED'
+              }
+            };
+
+            // Determine overall compliance
+            let totalReqs = 0;
+            let satisfiedReqs = 0;
+
+            Object.values(procedureStages).forEach(stage => {
+              stage.requirements.forEach(req => {
+                totalReqs++;
+                if (req.status === 'SATISFIED') satisfiedReqs++;
+              });
+            });
+
+            const compliancePercentage = totalReqs > 0 ? Math.round((satisfiedReqs / totalReqs) * 100) : 0;
+
+            return {
+              stages: procedureStages,
+              summary: {
+                totalRequirements: totalReqs,
+                satisfied: satisfiedReqs,
+                compliancePercentage: compliancePercentage,
+                assessment: compliancePercentage > 70 ? 'GOOD' : compliancePercentage > 40 ? 'PARTIAL' : 'POOR'
+              }
+            };
+          };
+
+          const checkRequirement = (content, pattern) => {
+            const matches = content.match(pattern);
+            return matches && matches.length > 0 ? 'SATISFIED' : 'NOT_SATISFIED';
+          };
+
+          // 3. RSA 1986 SPECIFIC CHECKLIST
+          const performRSAChecklist = (content) => {
+            const checklist = {
+              preliminaryTestChain: {
+                section: 'Preliminary Test Chain (s.49-55E)',
+                items: [
+                  {
+                    requirement: 'Officer had "reason to believe" (s.49)',
+                    checked: /reason to believe/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Preliminary test unlawful without statutory basis'
+                  },
+                  {
+                    requirement: 'Belief based on specified indicators (s.49(1)(a)-(h))',
+                    checked: /smell|bloodshot|slurred|unsteady|accident|random/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Must identify specific circumstance authorizing test'
+                  },
+                  {
+                    requirement: 'Preliminary test authorized device (s.49)',
+                    checked: /approved.*device|authorized.*device/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Device must be approved - test invalid otherwise'
+                  },
+                  {
+                    requirement: 'Test "in accordance with directions" (s.55D(1))',
+                    checked: /in accordance with|followed.*directions/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Test inadmissible without compliance with directions'
+                  },
+                  {
+                    requirement: 'Directions given (oral if literate, written if not) (s.55D(2))',
+                    checked: /directions.*given|oral.*directions|written.*directions/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Failure to give proper directions vitiates test'
+                  },
+                  {
+                    requirement: 'Device approved for use',
+                    checked: /approved|authorized/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Cannot rely on s.55E presumption'
+                  },
+                  {
+                    requirement: 'Used as designed',
+                    checked: /designed|proper.*use|correct.*procedure/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Improper use defeats presumption'
+                  },
+                  {
+                    requirement: 'In working order',
+                    checked: /working|functioning|operational/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Malfunctioning device produces unreliable results'
+                  },
+                  {
+                    requirement: 'Properly maintained',
+                    checked: /maintained|maintenance|calibrat/gi.test(content),
+                    mandatory: false,
+                    consequence: 'Lack of maintenance evidence weakens reliability'
+                  },
+                  {
+                    requirement: 'Result indicated presence of alcohol/drug',
+                    checked: /positive|detected|present|reading/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Must have positive result to proceed to evidentiary test'
+                  }
+                ]
+              },
+              evidentiaryTestChain: {
+                section: 'Evidentiary Test Chain (s.55)',
+                items: [
+                  {
+                    requirement: 'Conducted at approved location',
+                    checked: /police station|approved.*location/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Test at unapproved location may be invalid'
+                  },
+                  {
+                    requirement: 'Approved device used',
+                    checked: /approved.*device|breath.*analyzer/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Device must be approved under RSA'
+                  },
+                  {
+                    requirement: 'Proper performance established',
+                    checked: /working.*order|properly.*maintained|calibrat/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Must establish s.55E proper performance presumption'
+                  },
+                  {
+                    requirement: 'Certificate completed (s.48)',
+                    checked: /certificate|certify/gi.test(content),
+                    mandatory: true,
+                    consequence: 'Result inadmissible without s.48 certificate'
+                  }
+                ]
+              }
+            };
+
+            // Calculate compliance
+            const allItems = [...checklist.preliminaryTestChain.items, ...checklist.evidentiaryTestChain.items];
+            const mandatoryItems = allItems.filter(item => item.mandatory);
+            const satisfiedMandatory = mandatoryItems.filter(item => item.checked).length;
+            const totalSatisfied = allItems.filter(item => item.checked).length;
+
+            checklist.summary = {
+              totalItems: allItems.length,
+              mandatoryItems: mandatoryItems.length,
+              satisfiedMandatory: satisfiedMandatory,
+              totalSatisfied: totalSatisfied,
+              mandatoryCompliance: Math.round((satisfiedMandatory / mandatoryItems.length) * 100),
+              overallCompliance: Math.round((totalSatisfied / allItems.length) * 100),
+              assessment: satisfiedMandatory === mandatoryItems.length ? 'FULL_COMPLIANCE' :
+                         satisfiedMandatory > mandatoryItems.length * 0.7 ? 'PARTIAL_COMPLIANCE' : 'NON_COMPLIANT'
+            };
+
+            return checklist;
+          };
+
+          // 4. DISCLOSURE COMPLIANCE MATRIX
+          const checkDisclosureCompliance = (content) => {
+            const matrix = {
+              prosecutionDisclosure: {
+                title: 'Mandatory Prosecution Disclosure (CPA s.187)',
+                requirements: [
+                  {
+                    item: 'Copy of informant statement (s.187(1)(a))',
+                    status: /informant.*statement/gi.test(content) ? 'PROVIDED' : 'MISSING',
+                    mandatory: true,
+                    timing: 'Before contest mention',
+                    consequence: 'Breach of s.187 - matter may be adjourned or struck out'
+                  },
+                  {
+                    item: 'Copies of all witness statements (s.187(1)(b))',
+                    status: /witness.*statement/gi.test(content) ? 'PROVIDED' : 'MISSING',
+                    mandatory: true,
+                    timing: 'Before contest mention',
+                    consequence: 'Breach of s.187 - procedural unfairness'
+                  },
+                  {
+                    item: 'List of exhibits (s.187(1)(c))',
+                    status: /exhibit|list.*exhibit/gi.test(content) ? 'PROVIDED' : 'MISSING',
+                    mandatory: true,
+                    timing: 'Before contest mention',
+                    consequence: 'Defence cannot properly prepare without exhibit list'
+                  },
+                  {
+                    item: 'Accused prior convictions (s.187(1)(d))',
+                    status: /prior.*conviction|criminal.*history/gi.test(content) ? 'PROVIDED' : 'MISSING',
+                    mandatory: true,
+                    timing: 'Before contest mention',
+                    consequence: 'Required for plea and sentence indications'
+                  },
+                  {
+                    item: 'Any exculpatory material',
+                    status: /exculpatory|favourable|inconsistent.*statement/gi.test(content) ? 'PROVIDED' : 'UNKNOWN',
+                    mandatory: true,
+                    timing: 'As soon as practicable',
+                    consequence: 'Prosecution duty to disclose - breach may result in stay or exclusion'
+                  }
+                ]
+              },
+              defenceDisclosure: {
+                title: 'Defence Disclosure (CPA s.185)',
+                requirements: [
+                  {
+                    item: 'Alibi notice (if applicable)',
+                    status: /alibi/gi.test(content) ? 'PROVIDED' : 'NOT_APPLICABLE',
+                    mandatory: false,
+                    timing: '14 days before hearing',
+                    consequence: 'Alibi evidence may be excluded if notice not given'
+                  },
+                  {
+                    item: 'Expert evidence notice',
+                    status: /expert|specialist.*report/gi.test(content) ? 'PROVIDED' : 'UNKNOWN',
+                    mandatory: false,
+                    timing: '21 days before hearing',
+                    consequence: 'Expert evidence inadmissible without notice'
+                  },
+                  {
+                    item: 'Witnesses to be called',
+                    status: /witness.*list|witnesses.*called/gi.test(content) ? 'PROVIDED' : 'UNKNOWN',
+                    mandatory: false,
+                    timing: 'Before hearing',
+                    consequence: 'Procedural fairness to prosecution'
+                  }
+                ]
+              },
+              timingCompliance: {
+                title: 'Timing Requirements (CPA s.186)',
+                status: /within.*time|timely|timeframe/gi.test(content) ? 'SATISFIED' : 'UNKNOWN',
+                requirement: 'Prosecution disclosure within timeframes under s.186',
+                consequence: 'Late disclosure may result in adjournment with costs or other sanctions'
+              }
+            };
+
+            // Calculate overall compliance
+            const allReqs = [...matrix.prosecutionDisclosure.requirements, ...matrix.defenceDisclosure.requirements];
+            const mandatoryReqs = allReqs.filter(req => req.mandatory);
+            const satisfiedMandatory = mandatoryReqs.filter(req => req.status === 'PROVIDED' || req.status === 'SATISFIED').length;
+
+            matrix.summary = {
+              totalMandatory: mandatoryReqs.length,
+              satisfiedMandatory: satisfiedMandatory,
+              complianceRate: Math.round((satisfiedMandatory / mandatoryReqs.length) * 100),
+              assessment: satisfiedMandatory === mandatoryReqs.length ? 'FULL_COMPLIANCE' :
+                         satisfiedMandatory > 0 ? 'PARTIAL_COMPLIANCE' : 'NON_COMPLIANT',
+              risk: satisfiedMandatory < mandatoryReqs.length ? 'HIGH' : 'LOW'
+            };
+
+            return matrix;
+          };
+
+          // 5. COURT-READY SUBMISSIONS GENERATOR
+          const generateCourtReadySubmissions = (defectCategories, rsaCompliance, disclosureCompliance) => {
+            const submissions = [];
+
+            // Generate submissions for each critical defect
+
+            // Category A - Jurisdictional Defects
+            defectCategories.categoryA_Jurisdictional.forEach(defect => {
+              if (defect.severity === 'CRITICAL' || defect.severity === 'HIGH') {
+                submissions.push(generateSubmission(defect, 'JURISDICTIONAL'));
+              }
+            });
+
+            // Category B - Procedural Defects (RSA specific)
+            defectCategories.categoryB_Procedural.forEach(defect => {
+              if (defect.defectId.startsWith('B2') || defect.defectId.startsWith('B3')) {
+                submissions.push(generateSubmission(defect, 'RSA_PROCEDURAL'));
+              }
+            });
+
+            // Category C - Evidentiary Defects
+            defectCategories.categoryC_Evidentiary.forEach(defect => {
+              if (defect.severity === 'CRITICAL' || defect.severity === 'HIGH') {
+                submissions.push(generateSubmission(defect, 'EVIDENTIARY'));
+              }
+            });
+
+            // Disclosure compliance submission
+            if (disclosureCompliance.summary.assessment !== 'FULL_COMPLIANCE') {
+              submissions.push(generateDisclosureSubmission(disclosureCompliance));
+            }
+
+            return {
+              submissions: submissions,
+              count: submissions.length,
+              summary: `${submissions.length} court-ready skeleton submissions generated based on identified defects`
+            };
+          };
+
+          const generateSubmission = (defect, category) => {
+            let applicableLaw = '';
+            let authorities = [];
+
+            if (category === 'JURISDICTIONAL') {
+              applicableLaw = 'The Magistrates\' Court derives its jurisdiction from statute. Any action taken without statutory authority, outside prescribed time limits, or beyond the court\'s summary jurisdiction is void ab initio.';
+              authorities = [
+                'Principle: Jurisdictional error renders decision void (Craig v South Australia (1995) 184 CLR 163)',
+                'Principle: Strict compliance with time limits jurisdictional (various Victorian authorities)',
+                'Principle: Court cannot confer jurisdiction on itself'
+              ];
+            } else if (category === 'RSA_PROCEDURAL') {
+              applicableLaw = defect.statutoryReference || 'Road Safety Act 1986 provisions are mandatory and must be strictly complied with.';
+              authorities = [
+                'Principle: Strict compliance with RSA testing procedures required',
+                'Principle: Failure to follow prescribed procedure may vitiate test',
+                'Principle: Prosecution bears onus of proving compliance with RSA requirements'
+              ];
+            } else if (category === 'EVIDENTIARY') {
+              applicableLaw = 'The Evidence Act 2008 provides strict rules governing admissibility of evidence. The prosecution bears the onus of proving admissibility.';
+              authorities = [
+                'Principle: Hearsay inadmissible unless exception (s.59)',
+                'Principle: Opinion evidence inadmissible without expertise (s.76)',
+                'Principle: Court has discretion to exclude improperly obtained evidence (s.138)',
+                'Principle: Mandatory exclusion if unfairly prejudicial (s.137)'
+              ];
+            }
+
+            return {
+              title: `SUBMISSION ON ${defect.title.toUpperCase()}`,
+              defectId: defect.defectId,
+              structure: {
+                applicableLaw: {
+                  heading: 'Applicable Law',
+                  content: [
+                    defect.statutoryReference || applicableLaw,
+                    defect.legalConsequence
+                  ]
+                },
+                facts: {
+                  heading: 'Facts',
+                  content: [
+                    `Document Evidence: "${defect.evidence}"`,
+                    `Issue: ${defect.description}`
+                  ]
+                },
+                analysis: {
+                  heading: 'Analysis',
+                  content: [
+                    `The documents reveal the following deficiency: ${defect.description}`,
+                    `This constitutes a ${defect.severity.toLowerCase()} defect because ${defect.legalConsequence.toLowerCase()}`,
+                    defect.remedy
+                  ]
+                },
+                defectIdentified: {
+                  heading: 'Defect Identified',
+                  content: defect.title
+                },
+                legalConsequence: {
+                  heading: 'Legal Consequence',
+                  content: defect.legalConsequence
+                },
+                reliefSought: {
+                  heading: 'Relief Sought',
+                  content: determineReliefSought(defect, category)
+                },
+                authorities: {
+                  heading: 'Authorities',
+                  content: authorities
+                }
+              },
+              formattedSubmission: formatSubmissionText(defect, applicableLaw, authorities, category)
+            };
+          };
+
+          const generateDisclosureSubmission = (disclosureCompliance) => {
+            const missingItems = disclosureCompliance.prosecutionDisclosure.requirements
+              .filter(req => req.status === 'MISSING' && req.mandatory);
+
+            return {
+              title: 'SUBMISSION ON DISCLOSURE NON-COMPLIANCE',
+              defectId: 'DISCLOSURE',
+              structure: {
+                applicableLaw: {
+                  heading: 'Applicable Law',
+                  content: [
+                    'Criminal Procedure Act 2009 Part 3.3 (ss.185-187) mandates disclosure by prosecution.',
+                    'Section 187(1) requires prosecution to provide: (a) informant statement; (b) witness statements; (c) exhibit list; (d) prior convictions.',
+                    'Section 186 specifies timing for disclosure.',
+                    'Failure to comply may result in adjournment, costs, or striking out of charge.'
+                  ]
+                },
+                facts: {
+                  heading: 'Facts',
+                  content: [
+                    `${missingItems.length} mandatory disclosure item(s) not provided`,
+                    ...missingItems.map(item => `Missing: ${item.item}`)
+                  ]
+                },
+                analysis: {
+                  heading: 'Analysis',
+                  content: [
+                    'Prosecution disclosure is mandatory, not discretionary.',
+                    'Defence cannot properly prepare without complete disclosure.',
+                    'Proceeding without disclosure would breach procedural fairness.',
+                    'Court has power to enforce compliance through adjournment or costs orders.'
+                  ]
+                },
+                defectIdentified: {
+                  heading: 'Defect Identified',
+                  content: 'Non-compliance with mandatory prosecution disclosure obligations under CPA Part 3.3'
+                },
+                legalConsequence: {
+                  heading: 'Legal Consequence',
+                  content: 'Breach of procedural fairness; accused unable to properly prepare defence; potential for miscarriage of justice'
+                },
+                reliefSought: {
+                  heading: 'Relief Sought',
+                  content: [
+                    '1. Order that prosecution provide complete disclosure within 7 days',
+                    '2. Adjournment of proceedings pending compliance',
+                    '3. Costs of adjournment be borne by prosecution',
+                    '4. In default of compliance, charge be struck out'
+                  ].join('\n')
+                },
+                authorities: {
+                  heading: 'Authorities',
+                  content: [
+                    'Criminal Procedure Act 2009 ss.185-187',
+                    'Principle: Prosecution disclosure mandatory (various Victorian authorities)',
+                    'Principle: Procedural fairness requires adequate disclosure',
+                    'Principle: Court has inherent power to prevent abuse of process'
+                  ]
+                }
+              },
+              formattedSubmission: formatDisclosureSubmission(missingItems)
+            };
+          };
+
+          const determineReliefSought = (defect, category) => {
+            if (category === 'JURISDICTIONAL') {
+              return 'Order that charge be struck out for want of jurisdiction / Order that proceedings be dismissed for jurisdictional defect';
+            } else if (category === 'RSA_PROCEDURAL') {
+              return 'Order that preliminary test result be ruled inadmissible and excluded from evidence / Order that evidentiary test result be excluded';
+            } else if (category === 'EVIDENTIARY') {
+              if (defect.defectId === 'C1') {
+                return 'Order that hearsay evidence be ruled inadmissible and excluded pursuant to Evidence Act s.59';
+              } else if (defect.defectId === 'C3') {
+                return 'Order that improperly obtained evidence be excluded in exercise of discretion under Evidence Act s.138';
+              } else if (defect.defectId === 'C4') {
+                return 'Order that unfairly prejudicial evidence be excluded pursuant to Evidence Act s.137';
+              } else {
+                return 'Order that inadmissible evidence be excluded';
+              }
+            }
+            return 'Order providing appropriate remedy for identified defect';
+          };
+
+          const formatSubmissionText = (defect, applicableLaw, authorities, category) => {
+            return `SUBMISSION ON ${defect.title.toUpperCase()}
+
+Applicable Law:
+${defect.statutoryReference || applicableLaw}
+
+${defect.legalConsequence}
+
+Facts:
+Document evidence: "${defect.evidence}"
+Issue identified: ${defect.description}
+
+Analysis:
+The documents reveal the following deficiency: ${defect.description}
+
+This constitutes a ${defect.severity.toLowerCase()} defect because ${defect.legalConsequence.toLowerCase()}
+
+${defect.remedy}
+
+Defect Identified:
+${defect.title}
+
+Legal Consequence:
+${defect.legalConsequence}
+
+Relief Sought:
+${determineReliefSought(defect, category)}
+
+Authorities:
+${authorities.join('\n')}`;
+          };
+
+          const formatDisclosureSubmission = (missingItems) => {
+            return `SUBMISSION ON DISCLOSURE NON-COMPLIANCE
+
+Applicable Law:
+Criminal Procedure Act 2009 Part 3.3 (ss.185-187) mandates prosecution disclosure.
+
+Section 187(1) requires prosecution to provide:
+(a) copy of informant's statement
+(b) copies of all witness statements
+(c) list of exhibits
+(d) accused's prior convictions
+(e) any exculpatory material
+
+Section 186 specifies timing for disclosure.
+
+Failure to comply may result in adjournment, costs, or striking out of charge.
+
+Facts:
+The following mandatory disclosure items have not been provided:
+${missingItems.map(item => `• ${item.item}`).join('\n')}
+
+Analysis:
+Prosecution disclosure under Part 3.3 is mandatory, not discretionary. Defence cannot properly prepare without complete disclosure. Proceeding without disclosure would breach procedural fairness requirements.
+
+The Court has power to enforce compliance through adjournment or costs orders, and in egregious cases may strike out the charge.
+
+Defect Identified:
+Non-compliance with mandatory prosecution disclosure obligations under Criminal Procedure Act 2009 Part 3.3
+
+Legal Consequence:
+Breach of procedural fairness; accused unable to properly prepare defence; potential for miscarriage of justice if matter proceeds without disclosure
+
+Relief Sought:
+1. Order that prosecution provide complete disclosure within 7 days
+2. Adjournment of proceedings pending compliance with disclosure obligations
+3. Costs of adjournment be borne by prosecution
+4. In default of compliance within ordered timeframe, charge be struck out
+
+Authorities:
+• Criminal Procedure Act 2009 ss.185-187
+• Principle: Prosecution disclosure mandatory (various Victorian authorities)
+• Principle: Procedural fairness requires adequate disclosure to accused
+• Principle: Court has inherent power to prevent abuse of process`;
+          };
+
+          // 6. CASE-SPECIFIC LEARNING FRAMEWORK
+          const analyzeCasePatterns = (defectCategories) => {
+            const allDefects = [
+              ...defectCategories.categoryA_Jurisdictional,
+              ...defectCategories.categoryB_Procedural,
+              ...defectCategories.categoryC_Evidentiary,
+              ...defectCategories.categoryD_Factual
+            ];
+
+            const defectsByType = {};
+            const defectsBySeverity = {
+              CRITICAL: [],
+              HIGH: [],
+              MEDIUM: [],
+              LOW: []
+            };
+
+            allDefects.forEach(defect => {
+              // Group by type
+              const typeKey = defect.defectId.substring(0, 2);
+              if (!defectsByType[typeKey]) {
+                defectsByType[typeKey] = [];
+              }
+              defectsByType[typeKey].push(defect);
+
+              // Group by severity
+              if (defectsBySeverity[defect.severity]) {
+                defectsBySeverity[defect.severity].push(defect);
+              }
+            });
+
+            const insights = {
+              totalDefects: allDefects.length,
+              criticalDefects: defectsBySeverity.CRITICAL.length,
+              highDefects: defectsBySeverity.HIGH.length,
+              defectDistribution: {
+                jurisdictional: defectCategories.categoryA_Jurisdictional.length,
+                procedural: defectCategories.categoryB_Procedural.length,
+                evidentiary: defectCategories.categoryC_Evidentiary.length,
+                factual: defectCategories.categoryD_Factual.length
+              },
+              commonPatterns: identifyCommonPatterns(allDefects),
+              recommendations: generateRecommendations(defectsByType, defectsBySeverity),
+              learningPoints: [
+                'Pattern detection enabled - system will learn from outcomes',
+                'Track which defects lead to successful exclusion applications',
+                'Monitor typical judicial responses to each defect type',
+                'Build knowledge base of successful remediation strategies',
+                'User should provide feedback after court outcomes to enhance learning'
+              ],
+              feedbackPrompt: 'After court proceedings, please provide outcome feedback to enhance future analysis accuracy'
+            };
+
+            return insights;
+          };
+
+          const identifyCommonPatterns = (defects) => {
+            const patterns = [];
+
+            // RSA compliance issues
+            const rsaDefects = defects.filter(d => d.defectId.startsWith('B2') || d.defectId.startsWith('B3'));
+            if (rsaDefects.length > 0) {
+              patterns.push({
+                pattern: 'Road Safety Act Procedural Non-Compliance',
+                frequency: rsaDefects.length,
+                significance: 'HIGH',
+                description: 'Multiple RSA 1986 procedural defects identified - systematic compliance issues apparent'
+              });
+            }
+
+            // Disclosure issues
+            const disclosureDefects = defects.filter(d => d.defectId === 'B1' || d.title.includes('Disclosure'));
+            if (disclosureDefects.length > 0) {
+              patterns.push({
+                pattern: 'Disclosure Non-Compliance',
+                frequency: disclosureDefects.length,
+                significance: 'HIGH',
+                description: 'Prosecution disclosure obligations not fully met - procedural fairness concerns'
+              });
+            }
+
+            // Evidentiary admissibility issues
+            const evidentiaryDefects = defects.filter(d => d.defectId.startsWith('C'));
+            if (evidentiaryDefects.length >= 3) {
+              patterns.push({
+                pattern: 'Multiple Evidentiary Admissibility Issues',
+                frequency: evidentiaryDefects.length,
+                significance: 'HIGH',
+                description: 'Significant evidentiary defects - multiple exclusion applications warranted'
+              });
+            }
+
+            return patterns;
+          };
+
+          const generateRecommendations = (defectsByType, defectsBySeverity) => {
+            const recommendations = [];
+
+            if (defectsBySeverity.CRITICAL.length > 0) {
+              recommendations.push({
+                priority: 'URGENT',
+                action: 'Address Critical Defects Immediately',
+                details: `${defectsBySeverity.CRITICAL.length} critical defect(s) identified that may be fatal to prosecution case. Prepare submissions for immediate presentation to court.`
+              });
+            }
+
+            if (defectsByType['B2'] || defectsByType['B3']) {
+              recommendations.push({
+                priority: 'HIGH',
+                action: 'RSA Compliance Review',
+                details: 'Road Safety Act procedural defects identified. Consider comprehensive admissibility challenge to breath test evidence.'
+              });
+            }
+
+            if (defectsByType['C1'] || defectsByType['C2'] || defectsByType['C3']) {
+              recommendations.push({
+                priority: 'HIGH',
+                action: 'Evidence Exclusion Applications',
+                details: 'Multiple evidentiary defects warrant voir dire applications under Evidence Act. Prepare s.137/s.138 applications.'
+              });
+            }
+
+            if (defectsByType['A']) {
+              recommendations.push({
+                priority: 'CRITICAL',
+                action: 'Jurisdictional Challenge',
+                details: 'Jurisdictional defects identified. Consider preliminary application to challenge court\'s jurisdiction before proceeding to hearing.'
+              });
+            }
+
+            recommendations.push({
+              priority: 'MEDIUM',
+              action: 'Comprehensive Case Review',
+              details: 'Review all identified defects with instructing solicitor and prepare detailed submissions for each substantive defect.'
+            });
+
+            return recommendations;
+          };
+
+          const generateExecutiveSummary = (phaseA, phaseB, phaseC, phaseD) => {
             const totalIssuesA = phaseA.fileA.reduce((sum, analysis) => sum + analysis.findings.potentialIssues.length, 0);
             const totalIssuesB = phaseA.fileB.reduce((sum, analysis) => sum + analysis.findings.potentialIssues.length, 0);
-            
+
+            // Phase D statistics
+            const phaseDStats = phaseD ? {
+              totalDefects: phaseD.learningInsights.totalDefects,
+              critical: phaseD.learningInsights.criticalDefects,
+              high: phaseD.learningInsights.highDefects,
+              submissions: phaseD.courtSubmissions.count,
+              rsaCompliance: phaseD.rsaCompliance.summary.mandatoryCompliance,
+              disclosureCompliance: phaseD.disclosureCompliance.summary.complianceRate
+            } : null;
+
             return {
               overallAssessment: totalIssuesA + totalIssuesB === 0 ? 'No Critical Issues Identified' : 'Issues Requiring Attention Identified',
               criticalFindings: [
                 `File A: ${totalIssuesA} potential issues identified across ${interpretivePresets.length} analytical presets`,
                 `File B: ${totalIssuesB} potential issues identified across ${interpretivePresets.length} analytical presets`,
                 `Cross-reference analysis: ${phaseB.discrepancies.length} discrepancies, ${phaseB.omissions.length} omissions`,
-                `Governing framework: ${phaseB.governingFramework.length} statutory instruments identified`
+                `Governing framework: ${phaseB.governingFramework.length} statutory instruments identified`,
+                ...(phaseDStats ? [
+                  `Magistrates' Court Analysis: ${phaseDStats.totalDefects} defects identified (${phaseDStats.critical} critical, ${phaseDStats.high} high priority)`,
+                  `RSA 1986 Compliance: ${phaseDStats.rsaCompliance}% of mandatory requirements satisfied`,
+                  `Disclosure Compliance: ${phaseDStats.disclosureCompliance}% (CPA Part 3.3)`,
+                  `Court-ready submissions: ${phaseDStats.submissions} skeleton arguments generated`
+                ] : [])
               ],
               recommendations: [
                 'Review all identified discrepancies for potential procedural defects',
                 'Verify compliance with mandatory statutory requirements',
                 'Consider extrinsic materials for ambiguity resolution where necessary',
                 'Cross-check all statutory references against current legislation',
-                'Ensure harmonious interpretation between documents where possible'
+                'Ensure harmonious interpretation between documents where possible',
+                ...(phaseDStats && phaseDStats.critical > 0 ? [
+                  `URGENT: Address ${phaseDStats.critical} critical defects immediately - may be fatal to prosecution case`
+                ] : []),
+                ...(phaseDStats && phaseDStats.rsaCompliance < 100 ? [
+                  'Review RSA 1986 procedural compliance - consider admissibility challenges'
+                ] : []),
+                ...(phaseDStats && phaseDStats.disclosureCompliance < 100 ? [
+                  'Seek complete disclosure under CPA Part 3.3 - apply for adjournment if necessary'
+                ] : [])
               ],
               nextSteps: [
                 'Detailed review of high-severity issues',
                 'Consultation of relevant case law for interpretative guidance',
                 'Preparation of submissions addressing identified defects',
-                'Verification of all factual assertions against evidence'
+                'Verification of all factual assertions against evidence',
+                ...(phaseDStats && phaseDStats.submissions > 0 ? [
+                  `Review ${phaseDStats.submissions} court-ready submissions in Phase D section`,
+                  'Adapt skeleton arguments to specific case circumstances',
+                  'Identify applicable Victorian case law authorities',
+                  'Prepare voir dire applications for evidentiary defects'
+                ] : [])
               ]
             };
           };
@@ -4564,6 +5955,7 @@
                       <li style={{ marginBottom: '4px' }}>• Phase A: Multi-preset forensic examination using {interpretivePresets.length} interpretive frameworks</li>
                       <li style={{ marginBottom: '4px' }}>• Phase B: Statutory framework identification and cross-reference analysis</li>
                       <li style={{ marginBottom: '4px' }}>• Phase C: Comprehensive statutory interpretation applying modern purposive approach</li>
+                      <li style={{ marginBottom: '4px' }}>• Phase D: Victorian Magistrates' Court criminal procedure analysis with court-ready submissions</li>
                       <li>• Identifies legal flaws, factual inconsistencies, and procedural defects</li>
                     </ul>
                   </div>
@@ -6332,6 +7724,684 @@
                         </div>
                       </div>
                     </AnalysisSection>
+
+                    {/* PHASE D: VICTORIAN MAGISTRATES' COURT CRIMINAL PROCEDURE ANALYSIS */}
+                    {analysisResults.phaseD && (
+                      <AnalysisSection title="⚖️ Phase D: Victorian Magistrates' Court Criminal Procedure Analysis" sectionId="phaseD">
+                        <div style={{ marginTop: '16px' }}>
+
+                          {/* OVERVIEW CARD */}
+                          <div style={{
+                            backgroundColor: '#eff6ff',
+                            border: '2px solid #2563eb',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            marginBottom: '20px'
+                          }}>
+                            <h4 style={{ fontWeight: '700', color: '#1e40af', marginBottom: '12px', fontSize: '16px' }}>
+                              🏛️ MAGISTRATES' COURT COMPLIANCE OVERVIEW
+                            </h4>
+                            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+                              <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '700', color: '#dc2626' }}>
+                                  {analysisResults.phaseD.learningInsights.totalDefects}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#6b7280' }}>Total Defects</div>
+                              </div>
+                              <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '700', color: '#ea580c' }}>
+                                  {analysisResults.phaseD.learningInsights.criticalDefects}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#6b7280' }}>Critical Priority</div>
+                              </div>
+                              <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '700', color: '#2563eb' }}>
+                                  {analysisResults.phaseD.courtSubmissions.count}
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#6b7280' }}>Court Submissions</div>
+                              </div>
+                              <div style={{ backgroundColor: 'white', padding: '12px', borderRadius: '6px' }}>
+                                <div style={{ fontSize: '24px', fontWeight: '700', color: '#16a34a' }}>
+                                  {analysisResults.phaseD.rsaCompliance.summary.mandatoryCompliance}%
+                                </div>
+                                <div style={{ fontSize: '12px', color: '#6b7280' }}>RSA Compliance</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* CATEGORY A: JURISDICTIONAL DEFECTS */}
+                          {analysisResults.phaseD.defectCategories.categoryA_Jurisdictional.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fef2f2',
+                              border: '2px solid #dc2626',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{ fontWeight: '700', color: '#991b1b', marginBottom: '12px', fontSize: '15px' }}>
+                                🚨 CATEGORY A: JURISDICTIONAL DEFECTS (Court lacks authority)
+                              </h4>
+                              {analysisResults.phaseD.defectCategories.categoryA_Jurisdictional.map((defect, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '14px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  borderLeft: `4px solid ${defect.severity === 'CRITICAL' ? '#dc2626' : '#ea580c'}`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                                      [{defect.defectId}] {defect.title}
+                                    </span>
+                                    <span style={{
+                                      backgroundColor: defect.severity === 'CRITICAL' ? '#fee2e2' : '#fed7aa',
+                                      color: defect.severity === 'CRITICAL' ? '#991b1b' : '#92400e',
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: '600'
+                                    }}>
+                                      {defect.severity}
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Issue:</strong> {defect.description}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Evidence:</strong> {defect.evidence}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    backgroundColor: '#fef3c7',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{ color: '#78350f' }}>Legal Consequence:</strong><br/>
+                                    {defect.legalConsequence}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#166534' }}>
+                                    <strong>Remedy:</strong> {defect.remedy}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* CATEGORY B: PROCEDURAL DEFECTS */}
+                          {analysisResults.phaseD.defectCategories.categoryB_Procedural.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fff7ed',
+                              border: '2px solid #ea580c',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{ fontWeight: '700', color: '#9a3412', marginBottom: '12px', fontSize: '15px' }}>
+                                ⚠️ CATEGORY B: PROCEDURAL DEFECTS (Process not followed)
+                              </h4>
+                              {analysisResults.phaseD.defectCategories.categoryB_Procedural.map((defect, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '14px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  borderLeft: `4px solid ${defect.severity === 'CRITICAL' ? '#dc2626' : defect.severity === 'HIGH' ? '#ea580c' : '#f59e0b'}`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                                      [{defect.defectId}] {defect.title}
+                                    </span>
+                                    <span style={{
+                                      backgroundColor: defect.severity === 'CRITICAL' ? '#fee2e2' : defect.severity === 'HIGH' ? '#fed7aa' : '#fef3c7',
+                                      color: defect.severity === 'CRITICAL' ? '#991b1b' : defect.severity === 'HIGH' ? '#92400e' : '#78350f',
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: '600'
+                                    }}>
+                                      {defect.severity}
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Issue:</strong> {defect.description}
+                                  </p>
+                                  {defect.statutoryReference && (
+                                    <p style={{ fontSize: '12px', color: '#1e40af', marginBottom: '8px', fontStyle: 'italic' }}>
+                                      📜 {defect.statutoryReference}
+                                    </p>
+                                  )}
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Evidence:</strong> {defect.evidence}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    backgroundColor: '#fef3c7',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{ color: '#78350f' }}>Legal Consequence:</strong><br/>
+                                    {defect.legalConsequence}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#166534' }}>
+                                    <strong>Remedy:</strong> {defect.remedy}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* CATEGORY C: EVIDENTIARY DEFECTS */}
+                          {analysisResults.phaseD.defectCategories.categoryC_Evidentiary.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#fef3c7',
+                              border: '2px solid #f59e0b',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{ fontWeight: '700', color: '#92400e', marginBottom: '12px', fontSize: '15px' }}>
+                                📋 CATEGORY C: EVIDENTIARY DEFECTS (Evidence inadmissible/weak)
+                              </h4>
+                              {analysisResults.phaseD.defectCategories.categoryC_Evidentiary.map((defect, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '14px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  borderLeft: `4px solid ${defect.severity === 'CRITICAL' ? '#dc2626' : defect.severity === 'HIGH' ? '#ea580c' : '#f59e0b'}`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                                      [{defect.defectId}] {defect.title}
+                                    </span>
+                                    <span style={{
+                                      backgroundColor: defect.severity === 'CRITICAL' ? '#fee2e2' : defect.severity === 'HIGH' ? '#fed7aa' : '#fef3c7',
+                                      color: defect.severity === 'CRITICAL' ? '#991b1b' : defect.severity === 'HIGH' ? '#92400e' : '#78350f',
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: '600'
+                                    }}>
+                                      {defect.severity}
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Issue:</strong> {defect.description}
+                                  </p>
+                                  {defect.statutoryReference && (
+                                    <p style={{ fontSize: '12px', color: '#1e40af', marginBottom: '8px', fontStyle: 'italic' }}>
+                                      📜 {defect.statutoryReference}
+                                    </p>
+                                  )}
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Evidence:</strong> {defect.evidence}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    backgroundColor: '#dbeafe',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{ color: '#1e40af' }}>Legal Consequence:</strong><br/>
+                                    {defect.legalConsequence}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#166534' }}>
+                                    <strong>Remedy:</strong> {defect.remedy}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* CATEGORY D: FACTUAL DEFECTS */}
+                          {analysisResults.phaseD.defectCategories.categoryD_Factual.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#e0f2fe',
+                              border: '2px solid #0284c7',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{ fontWeight: '700', color: '#0c4a6e', marginBottom: '12px', fontSize: '15px' }}>
+                                📊 CATEGORY D: FACTUAL DEFECTS (Factual inconsistencies)
+                              </h4>
+                              {analysisResults.phaseD.defectCategories.categoryD_Factual.map((defect, idx) => (
+                                <div key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '14px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  borderLeft: `4px solid #0284c7`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                                    <span style={{ fontWeight: '700', color: '#111827', fontSize: '14px' }}>
+                                      [{defect.defectId}] {defect.title}
+                                    </span>
+                                    <span style={{
+                                      backgroundColor: '#e0f2fe',
+                                      color: '#0c4a6e',
+                                      padding: '2px 8px',
+                                      borderRadius: '4px',
+                                      fontSize: '11px',
+                                      fontWeight: '600'
+                                    }}>
+                                      {defect.severity}
+                                    </span>
+                                  </div>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Issue:</strong> {defect.description}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#374151', marginBottom: '8px' }}>
+                                    <strong>Evidence:</strong> {defect.evidence}
+                                  </p>
+                                  <p style={{
+                                    fontSize: '13px',
+                                    backgroundColor: '#fef3c7',
+                                    padding: '8px',
+                                    borderRadius: '4px',
+                                    marginBottom: '8px'
+                                  }}>
+                                    <strong style={{ color: '#78350f' }}>Legal Consequence:</strong><br/>
+                                    {defect.legalConsequence}
+                                  </p>
+                                  <p style={{ fontSize: '13px', color: '#166534' }}>
+                                    <strong>Remedy:</strong> {defect.remedy}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* RSA 1986 CHECKLIST */}
+                          <div style={{
+                            backgroundColor: '#f0fdf4',
+                            border: '2px solid #16a34a',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{ fontWeight: '700', color: '#14532d', marginBottom: '12px', fontSize: '15px' }}>
+                              ✅ RSA 1986 COMPLIANCE CHECKLIST
+                            </h4>
+                            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}>
+                              <div style={{ fontSize: '13px', marginBottom: '8px' }}>
+                                <strong>Mandatory Compliance:</strong> {analysisResults.phaseD.rsaCompliance.summary.mandatoryCompliance}%
+                                ({analysisResults.phaseD.rsaCompliance.summary.satisfiedMandatory}/{analysisResults.phaseD.rsaCompliance.summary.mandatoryItems} requirements)
+                              </div>
+                              <div style={{
+                                backgroundColor: analysisResults.phaseD.rsaCompliance.summary.assessment === 'FULL_COMPLIANCE' ? '#dcfce7' :
+                                                analysisResults.phaseD.rsaCompliance.summary.assessment === 'PARTIAL_COMPLIANCE' ? '#fef3c7' : '#fee2e2',
+                                color: analysisResults.phaseD.rsaCompliance.summary.assessment === 'FULL_COMPLIANCE' ? '#166534' :
+                                       analysisResults.phaseD.rsaCompliance.summary.assessment === 'PARTIAL_COMPLIANCE' ? '#92400e' : '#991b1b',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                fontSize: '13px'
+                              }}>
+                                Assessment: {analysisResults.phaseD.rsaCompliance.summary.assessment.replace(/_/g, ' ')}
+                              </div>
+                            </div>
+
+                            <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px' }}>
+                              <h5 style={{ fontWeight: '600', color: '#166534', marginBottom: '10px' }}>
+                                Preliminary Test Chain (s.49-55E)
+                              </h5>
+                              {analysisResults.phaseD.rsaCompliance.preliminaryTestChain.items.map((item, idx) => (
+                                <div key={idx} style={{
+                                  display: 'flex',
+                                  alignItems: 'start',
+                                  padding: '8px',
+                                  marginBottom: '6px',
+                                  backgroundColor: '#f9fafb',
+                                  borderRadius: '4px',
+                                  fontSize: '12px'
+                                }}>
+                                  <span style={{
+                                    marginRight: '8px',
+                                    fontSize: '16px',
+                                    color: item.checked ? '#16a34a' : '#dc2626'
+                                  }}>
+                                    {item.checked ? '✅' : '❌'}
+                                  </span>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                      {item.requirement} {item.mandatory && <span style={{ color: '#dc2626' }}>*</span>}
+                                    </div>
+                                    {!item.checked && (
+                                      <div style={{ color: '#dc2626', fontSize: '11px' }}>
+                                        ⚠️ {item.consequence}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px' }}>
+                              <h5 style={{ fontWeight: '600', color: '#166534', marginBottom: '10px' }}>
+                                Evidentiary Test Chain (s.55)
+                              </h5>
+                              {analysisResults.phaseD.rsaCompliance.evidentiaryTestChain.items.map((item, idx) => (
+                                <div key={idx} style={{
+                                  display: 'flex',
+                                  alignItems: 'start',
+                                  padding: '8px',
+                                  marginBottom: '6px',
+                                  backgroundColor: '#f9fafb',
+                                  borderRadius: '4px',
+                                  fontSize: '12px'
+                                }}>
+                                  <span style={{
+                                    marginRight: '8px',
+                                    fontSize: '16px',
+                                    color: item.checked ? '#16a34a' : '#dc2626'
+                                  }}>
+                                    {item.checked ? '✅' : '❌'}
+                                  </span>
+                                  <div style={{ flex: 1 }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                      {item.requirement}
+                                    </div>
+                                    {!item.checked && (
+                                      <div style={{ color: '#dc2626', fontSize: '11px' }}>
+                                        ⚠️ {item.consequence}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* DISCLOSURE COMPLIANCE MATRIX */}
+                          <div style={{
+                            backgroundColor: '#fef3c7',
+                            border: '2px solid #f59e0b',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{ fontWeight: '700', color: '#92400e', marginBottom: '12px', fontSize: '15px' }}>
+                              📑 DISCLOSURE COMPLIANCE MATRIX (CPA 2009 Part 3.3)
+                            </h4>
+                            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}>
+                              <div style={{ fontSize: '13px', marginBottom: '8px' }}>
+                                <strong>Compliance Rate:</strong> {analysisResults.phaseD.disclosureCompliance.summary.complianceRate}%
+                              </div>
+                              <div style={{
+                                backgroundColor: analysisResults.phaseD.disclosureCompliance.summary.assessment === 'FULL_COMPLIANCE' ? '#dcfce7' :
+                                                analysisResults.phaseD.disclosureCompliance.summary.assessment === 'PARTIAL_COMPLIANCE' ? '#fef3c7' : '#fee2e2',
+                                color: analysisResults.phaseD.disclosureCompliance.summary.assessment === 'FULL_COMPLIANCE' ? '#166534' :
+                                       analysisResults.phaseD.disclosureCompliance.summary.assessment === 'PARTIAL_COMPLIANCE' ? '#92400e' : '#991b1b',
+                                padding: '8px',
+                                borderRadius: '4px',
+                                fontWeight: '600',
+                                fontSize: '13px'
+                              }}>
+                                Risk Level: {analysisResults.phaseD.disclosureCompliance.summary.risk}
+                              </div>
+                            </div>
+
+                            <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px' }}>
+                              <h5 style={{ fontWeight: '600', color: '#92400e', marginBottom: '10px' }}>
+                                Prosecution Disclosure (s.187)
+                              </h5>
+                              {analysisResults.phaseD.disclosureCompliance.prosecutionDisclosure.requirements.map((req, idx) => (
+                                <div key={idx} style={{
+                                  padding: '10px',
+                                  marginBottom: '8px',
+                                  backgroundColor: '#f9fafb',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  borderLeft: `3px solid ${req.status === 'PROVIDED' ? '#16a34a' : '#dc2626'}`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <span style={{ fontWeight: '600' }}>{req.item}</span>
+                                    <span style={{
+                                      backgroundColor: req.status === 'PROVIDED' ? '#dcfce7' : '#fee2e2',
+                                      color: req.status === 'PROVIDED' ? '#166534' : '#991b1b',
+                                      padding: '2px 6px',
+                                      borderRadius: '3px',
+                                      fontSize: '10px'
+                                    }}>
+                                      {req.status}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                    Timing: {req.timing}
+                                  </div>
+                                  {req.status !== 'PROVIDED' && (
+                                    <div style={{ fontSize: '11px', color: '#dc2626', marginTop: '4px' }}>
+                                      ⚠️ {req.consequence}
+                                    </div>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+
+                            <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px' }}>
+                              <h5 style={{ fontWeight: '600', color: '#92400e', marginBottom: '10px' }}>
+                                Defence Disclosure (s.185)
+                              </h5>
+                              {analysisResults.phaseD.disclosureCompliance.defenceDisclosure.requirements.map((req, idx) => (
+                                <div key={idx} style={{
+                                  padding: '10px',
+                                  marginBottom: '8px',
+                                  backgroundColor: '#f9fafb',
+                                  borderRadius: '4px',
+                                  fontSize: '12px'
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                                    <span style={{ fontWeight: '600' }}>{req.item}</span>
+                                    <span style={{
+                                      backgroundColor: '#e0f2fe',
+                                      color: '#0c4a6e',
+                                      padding: '2px 6px',
+                                      borderRadius: '3px',
+                                      fontSize: '10px'
+                                    }}>
+                                      {req.status}
+                                    </span>
+                                  </div>
+                                  <div style={{ fontSize: '11px', color: '#6b7280' }}>
+                                    Timing: {req.timing}
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* MAGISTRATES' COURT PROCEDURE STAGES */}
+                          <div style={{
+                            backgroundColor: '#f5f3ff',
+                            border: '2px solid #7c3aed',
+                            padding: '16px',
+                            borderRadius: '8px',
+                            marginBottom: '16px'
+                          }}>
+                            <h4 style={{ fontWeight: '700', color: '#5b21b6', marginBottom: '12px', fontSize: '15px' }}>
+                              🏛️ MAGISTRATES' COURT PROCEDURE STAGES
+                            </h4>
+                            <div style={{ marginBottom: '16px', padding: '12px', backgroundColor: 'white', borderRadius: '6px' }}>
+                              <div style={{ fontSize: '13px', fontWeight: '600', marginBottom: '8px' }}>
+                                Overall Procedural Compliance: {analysisResults.phaseD.procedureCompliance.summary.compliancePercentage}%
+                              </div>
+                              <div style={{ fontSize: '12px', color: '#6b7280' }}>
+                                {analysisResults.phaseD.procedureCompliance.summary.satisfied} of {analysisResults.phaseD.procedureCompliance.summary.totalRequirements} requirements satisfied
+                              </div>
+                            </div>
+
+                            {Object.values(analysisResults.phaseD.procedureCompliance.stages).map((stage, idx) => (
+                              <div key={idx} style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px' }}>
+                                <h5 style={{ fontWeight: '600', color: '#5b21b6', marginBottom: '10px' }}>
+                                  {stage.stage}
+                                </h5>
+                                {stage.requirements.map((req, reqIdx) => (
+                                  <div key={reqIdx} style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    padding: '8px',
+                                    marginBottom: '6px',
+                                    backgroundColor: '#f9fafb',
+                                    borderRadius: '4px',
+                                    fontSize: '12px'
+                                  }}>
+                                    <span style={{
+                                      marginRight: '8px',
+                                      fontSize: '14px',
+                                      color: req.status === 'SATISFIED' ? '#16a34a' : '#dc2626'
+                                    }}>
+                                      {req.status === 'SATISFIED' ? '✅' : '❌'}
+                                    </span>
+                                    <span>{req.item}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* COURT-READY SUBMISSIONS */}
+                          {analysisResults.phaseD.courtSubmissions.submissions.length > 0 && (
+                            <div style={{
+                              backgroundColor: '#eff6ff',
+                              border: '2px solid #2563eb',
+                              padding: '16px',
+                              borderRadius: '8px',
+                              marginBottom: '16px'
+                            }}>
+                              <h4 style={{ fontWeight: '700', color: '#1e40af', marginBottom: '12px', fontSize: '15px' }}>
+                                📝 COURT-READY SKELETON SUBMISSIONS ({analysisResults.phaseD.courtSubmissions.count})
+                              </h4>
+                              <p style={{ fontSize: '13px', color: '#374151', marginBottom: '16px' }}>
+                                {analysisResults.phaseD.courtSubmissions.summary}
+                              </p>
+
+                              {analysisResults.phaseD.courtSubmissions.submissions.map((submission, idx) => (
+                                <details key={idx} style={{
+                                  backgroundColor: 'white',
+                                  padding: '14px',
+                                  borderRadius: '6px',
+                                  marginBottom: '12px',
+                                  cursor: 'pointer'
+                                }}>
+                                  <summary style={{ fontWeight: '600', color: '#1e40af', marginBottom: '10px', cursor: 'pointer' }}>
+                                    {submission.title}
+                                  </summary>
+                                  <pre style={{
+                                    backgroundColor: '#f9fafb',
+                                    padding: '16px',
+                                    borderRadius: '6px',
+                                    fontSize: '12px',
+                                    fontFamily: 'monospace',
+                                    whiteSpace: 'pre-wrap',
+                                    marginTop: '12px',
+                                    overflowX: 'auto'
+                                  }}>
+                                    {submission.formattedSubmission}
+                                  </pre>
+                                </details>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* LEARNING INSIGHTS & RECOMMENDATIONS */}
+                          <div style={{
+                            backgroundColor: '#dcfce7',
+                            border: '2px solid #16a34a',
+                            padding: '16px',
+                            borderRadius: '8px'
+                          }}>
+                            <h4 style={{ fontWeight: '700', color: '#14532d', marginBottom: '12px', fontSize: '15px' }}>
+                              🎯 STRATEGIC RECOMMENDATIONS
+                            </h4>
+
+                            {analysisResults.phaseD.learningInsights.commonPatterns.length > 0 && (
+                              <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px', marginBottom: '12px' }}>
+                                <h5 style={{ fontWeight: '600', color: '#166534', marginBottom: '10px' }}>Common Patterns Detected</h5>
+                                {analysisResults.phaseD.learningInsights.commonPatterns.map((pattern, idx) => (
+                                  <div key={idx} style={{
+                                    padding: '10px',
+                                    marginBottom: '8px',
+                                    backgroundColor: '#f0fdf4',
+                                    borderRadius: '4px',
+                                    fontSize: '12px',
+                                    borderLeft: '3px solid #16a34a'
+                                  }}>
+                                    <div style={{ fontWeight: '600', marginBottom: '4px' }}>
+                                      {pattern.pattern} <span style={{ fontSize: '10px', color: '#6b7280' }}>(Frequency: {pattern.frequency})</span>
+                                    </div>
+                                    <div style={{ color: '#374151' }}>{pattern.description}</div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+
+                            <div style={{ backgroundColor: 'white', padding: '14px', borderRadius: '6px' }}>
+                              <h5 style={{ fontWeight: '600', color: '#166534', marginBottom: '10px' }}>Recommended Actions</h5>
+                              {analysisResults.phaseD.learningInsights.recommendations.map((rec, idx) => (
+                                <div key={idx} style={{
+                                  padding: '10px',
+                                  marginBottom: '8px',
+                                  backgroundColor: rec.priority === 'URGENT' || rec.priority === 'CRITICAL' ? '#fee2e2' :
+                                                 rec.priority === 'HIGH' ? '#fed7aa' : '#f9fafb',
+                                  borderRadius: '4px',
+                                  fontSize: '12px',
+                                  borderLeft: `3px solid ${rec.priority === 'URGENT' || rec.priority === 'CRITICAL' ? '#dc2626' :
+                                                           rec.priority === 'HIGH' ? '#ea580c' : '#6b7280'}`
+                                }}>
+                                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
+                                    <span style={{ fontWeight: '600', color: '#111827' }}>{rec.action}</span>
+                                    <span style={{
+                                      backgroundColor: rec.priority === 'URGENT' || rec.priority === 'CRITICAL' ? '#dc2626' :
+                                                     rec.priority === 'HIGH' ? '#ea580c' : '#6b7280',
+                                      color: 'white',
+                                      padding: '2px 6px',
+                                      borderRadius: '3px',
+                                      fontSize: '10px',
+                                      fontWeight: '600'
+                                    }}>
+                                      {rec.priority}
+                                    </span>
+                                  </div>
+                                  <div style={{ color: '#374151' }}>{rec.details}</div>
+                                </div>
+                              ))}
+                            </div>
+
+                            <div style={{
+                              backgroundColor: '#fef3c7',
+                              padding: '12px',
+                              borderRadius: '6px',
+                              marginTop: '12px',
+                              fontSize: '12px'
+                            }}>
+                              <div style={{ fontWeight: '600', color: '#78350f', marginBottom: '8px' }}>
+                                💡 Case Learning Framework
+                              </div>
+                              <ul style={{ marginLeft: '20px', color: '#92400e' }}>
+                                {analysisResults.phaseD.learningInsights.learningPoints.map((point, idx) => (
+                                  <li key={idx} style={{ marginBottom: '4px' }}>{point}</li>
+                                ))}
+                              </ul>
+                              <div style={{
+                                marginTop: '10px',
+                                padding: '8px',
+                                backgroundColor: '#fed7aa',
+                                borderRadius: '4px',
+                                fontStyle: 'italic',
+                                color: '#78350f'
+                              }}>
+                                📩 {analysisResults.phaseD.learningInsights.feedbackPrompt}
+                              </div>
+                            </div>
+                          </div>
+
+                        </div>
+                      </AnalysisSection>
+                    )}
 
                     {historicalAnalyses.length > 0 && (
                       <AnalysisSection title="📊 Defect Evolution Timeline" sectionId="timeline">
