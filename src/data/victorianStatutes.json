@@ -1,0 +1,618 @@
+{
+  "metadata": {
+    "jurisdiction": "Victoria, Australia",
+    "lastUpdated": "2025-11-11",
+    "version": "1.0.0",
+    "description": "Comprehensive Victorian statute database for forensic legal analysis"
+  },
+
+  "Road_Safety_Act_1986": {
+    "fullName": "Road Safety Act 1986 (Vic)",
+    "shortName": "RSA 1986",
+    "category": "Road Safety",
+    "sections": {
+      "49": {
+        "title": "Preliminary breath test",
+        "fullSection": "s.49",
+        "subsections": {
+          "1": {
+            "reference": "s.49(1)",
+            "full_text": "A member of the police force may require a person to undergo a preliminary breath test in any of the circumstances set out in paragraphs (a) to (h).",
+            "elements": [
+              {
+                "name": "member_of_police_force",
+                "type": "authority_prerequisite",
+                "keywords": ["member of the police force", "police officer", "constable"],
+                "required": true,
+                "absence_consequence": "No lawful authority to require test"
+              },
+              {
+                "name": "one_of_circumstances",
+                "type": "jurisdictional_prerequisite",
+                "keywords": ["circumstance", "circumstances set out", "paragraphs (a) to (h)"],
+                "required": true,
+                "absence_consequence": "Jurisdictional defect - no power to require test"
+              }
+            ],
+            "paragraphs": {
+              "a": {
+                "reference": "s.49(1)(a)",
+                "description": "Person is the driver of a motor vehicle",
+                "keywords": ["driver", "driving", "drove", "motor vehicle"],
+                "elements": [
+                  {
+                    "name": "person_is_driver",
+                    "type": "factual_prerequisite",
+                    "keywords": ["driver", "driving"],
+                    "required": true
+                  },
+                  {
+                    "name": "motor_vehicle",
+                    "type": "factual_prerequisite",
+                    "keywords": ["motor vehicle", "vehicle"],
+                    "required": true
+                  }
+                ]
+              },
+              "b": {
+                "reference": "s.49(1)(b)",
+                "description": "Person is in charge of a motor vehicle (other than a tram)",
+                "keywords": ["in charge", "charge of", "control"],
+                "elements": [
+                  {
+                    "name": "in_charge",
+                    "type": "factual_prerequisite",
+                    "keywords": ["in charge", "in control", "charge of"],
+                    "required": true
+                  }
+                ]
+              },
+              "c": {
+                "reference": "s.49(1)(c)",
+                "description": "Person was recently driving a motor vehicle",
+                "keywords": ["recently driving", "recently drove", "just driving", "had been driving"],
+                "elements": [
+                  {
+                    "name": "recently_driving",
+                    "type": "temporal_factual_prerequisite",
+                    "keywords": ["recently", "recently driving", "recently drove"],
+                    "required": true
+                  }
+                ]
+              },
+              "d": {
+                "reference": "s.49(1)(d)",
+                "description": "Person was recently in charge of a motor vehicle",
+                "keywords": ["recently in charge", "recently in control"],
+                "elements": [
+                  {
+                    "name": "recently_in_charge",
+                    "type": "temporal_factual_prerequisite",
+                    "keywords": ["recently in charge", "recently in control"],
+                    "required": true
+                  }
+                ]
+              },
+              "e": {
+                "reference": "s.49(1)(e)",
+                "description": "Person is about to drive a motor vehicle",
+                "keywords": ["about to drive", "intending to drive", "preparing to drive"],
+                "elements": [
+                  {
+                    "name": "about_to_drive",
+                    "type": "prospective_factual_prerequisite",
+                    "keywords": ["about to drive", "intending to drive"],
+                    "required": true
+                  }
+                ]
+              },
+              "f": {
+                "reference": "s.49(1)(f)",
+                "description": "Motor vehicle involved in accident",
+                "keywords": ["accident", "collision", "crash", "incident"],
+                "elements": [
+                  {
+                    "name": "vehicle_in_accident",
+                    "type": "factual_prerequisite",
+                    "keywords": ["accident", "collision", "crash"],
+                    "required": true
+                  }
+                ]
+              },
+              "g": {
+                "reference": "s.49(1)(g)",
+                "description": "Reasonable belief person consumed alcohol or drug",
+                "keywords": ["reasonable belief", "alcohol", "drug", "consumed", "consumption"],
+                "elements": [
+                  {
+                    "name": "reasonable_belief",
+                    "type": "subjective_and_objective_prerequisite",
+                    "keywords": ["reasonable belief", "believed", "formed the belief", "formed the opinion"],
+                    "required": true,
+                    "absence_consequence": "Reasonable belief test not satisfied - George v Rockett (1990) two-limb test failure",
+                    "test_framework": {
+                      "name": "Reasonable Belief Test",
+                      "authority": "George v Rockett (1990) 170 CLR 104",
+                      "limbs": {
+                        "subjective": {
+                          "name": "Subjective Formation of Belief",
+                          "description": "Officer must have genuinely formed the belief",
+                          "indicators": ["believed", "formed the belief", "formed the opinion", "suspected", "formed the suspicion"],
+                          "required": true
+                        },
+                        "objective": {
+                          "name": "Objectively Reasonable Grounds",
+                          "description": "Belief must be based on objectively reasonable grounds",
+                          "indicators": ["observed", "witnessed", "saw", "detected", "measured", "smelled", "noted"],
+                          "required": true,
+                          "insufficient_indicators": ["appeared nervous", "seemed suspicious", "hunch", "gut feeling"]
+                        }
+                      }
+                    }
+                  },
+                  {
+                    "name": "alcohol_or_drug",
+                    "type": "object_of_belief",
+                    "options": ["consumed alcohol", "alcohol in body", "under influence of alcohol", "consumed drug", "drug in body", "under influence of drug"],
+                    "required": true
+                  }
+                ]
+              },
+              "h": {
+                "reference": "s.49(1)(h)",
+                "description": "Person driven or been in charge of vehicle and committed driving offence",
+                "keywords": ["driving offence", "offence", "contravention"],
+                "elements": [
+                  {
+                    "name": "driven_or_in_charge",
+                    "type": "factual_prerequisite",
+                    "keywords": ["driven", "driving", "in charge"],
+                    "required": true
+                  },
+                  {
+                    "name": "driving_offence",
+                    "type": "factual_prerequisite",
+                    "keywords": ["offence", "contravention", "breach"],
+                    "required": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "55": {
+        "title": "Evidentiary breath test",
+        "fullSection": "s.55",
+        "description": "Provisions for evidentiary breath testing following preliminary test"
+      },
+      "55D": {
+        "title": "Authority and conditions for preliminary breath tests",
+        "fullSection": "s.55D",
+        "subsections": {
+          "1": {
+            "reference": "s.55D(1)",
+            "full_text": "A member of the police force may require a person to undergo a preliminary breath test only if the member is authorized to do so under this section.",
+            "elements": [
+              {
+                "name": "authorized_member",
+                "type": "authority_prerequisite",
+                "keywords": ["authorized", "authorised", "authority", "authorized to do so"],
+                "required": true,
+                "absence_consequence": "No authority to require test - test invalid under s.55D(1)"
+              }
+            ]
+          },
+          "2": {
+            "reference": "s.55D(2)",
+            "full_text": "The test must be conducted in accordance with any conditions to which the member's authority is subject.",
+            "elements": [
+              {
+                "name": "in_accordance_with_conditions",
+                "type": "procedural_requirement",
+                "keywords": ["in accordance with", "conditions", "subject to"],
+                "required": true,
+                "absence_consequence": "Test not conducted in accordance with conditions - procedural defect"
+              }
+            ]
+          }
+        }
+      },
+      "55E": {
+        "title": "Breath analyzing instrument taken to have been properly used",
+        "fullSection": "s.55E",
+        "subsections": {
+          "1": {
+            "reference": "s.55E(1)",
+            "full_text": "A breath analyzing instrument is taken to have been properly used if it has been used in accordance with the manufacturer's directions.",
+            "elements": [
+              {
+                "name": "properly_used",
+                "type": "procedural_requirement",
+                "keywords": ["properly used", "in accordance with", "manufacturer's directions", "directions"],
+                "required": true,
+                "absence_consequence": "Proper performance requirement not satisfied - test inadmissible"
+              },
+              {
+                "name": "manufacturers_directions",
+                "type": "procedural_requirement",
+                "keywords": ["manufacturer's directions", "manufacturer directions", "directions for use"],
+                "required": true,
+                "absence_consequence": "No evidence of manufacturer's directions being followed"
+              }
+            ],
+            "proper_performance_indicators": [
+              "device has approval for use under regulations",
+              "device used as designed by manufacturer",
+              "device in working order at time of use",
+              "device properly maintained per manufacturer specifications",
+              "approval number visible/recorded",
+              "calibration certificate current",
+              "maintenance records available"
+            ]
+          }
+        },
+        "presumption": "Unless contrary proven, device presumed properly used if indicators present",
+        "rebuttal_burden": "Accused may adduce evidence device not properly used",
+        "disclosure_requirements": [
+          "Device approval number",
+          "Calibration certificate",
+          "Maintenance logs",
+          "Operating instructions",
+          "Training records of operator"
+        ]
+      }
+    }
+  },
+
+  "Criminal_Procedure_Act_2009": {
+    "fullName": "Criminal Procedure Act 2009 (Vic)",
+    "shortName": "CPA 2009",
+    "category": "Criminal Procedure",
+    "sections": {
+      "185": {
+        "title": "Defence disclosure in summary matters",
+        "fullSection": "s.185",
+        "subsections": {
+          "1": {
+            "reference": "s.185(1)",
+            "description": "Defence must give notice of certain matters",
+            "mandatory_disclosures": [
+              {
+                "type": "Notice of alibi",
+                "timing": "reasonable time before hearing",
+                "consequence_if_missing": "Evidence may be excluded or matter adjourned"
+              },
+              {
+                "type": "Notice of expert evidence",
+                "timing": "reasonable time before hearing",
+                "consequence_if_missing": "Expert evidence may be excluded"
+              },
+              {
+                "type": "List of witnesses",
+                "timing": "reasonable time before hearing",
+                "consequence_if_missing": "Witnesses may not be permitted to give evidence"
+              }
+            ]
+          }
+        }
+      },
+      "186": {
+        "title": "Time for disclosure",
+        "fullSection": "s.186",
+        "description": "Timing requirements for disclosure obligations"
+      },
+      "187": {
+        "title": "Prosecution disclosure in summary proceedings",
+        "fullSection": "s.187",
+        "subsections": {
+          "1": {
+            "reference": "s.187(1)",
+            "description": "Prosecution must disclose all relevant material",
+            "mandatory_disclosures": [
+              {
+                "type": "Copy of informant's statement",
+                "timing": "before contest mention or as soon as practicable",
+                "required": true
+              },
+              {
+                "type": "Copies of all witness statements",
+                "timing": "before contest mention or as soon as practicable",
+                "required": true
+              },
+              {
+                "type": "List of physical exhibits with descriptions",
+                "timing": "before contest mention or as soon as practicable",
+                "required": true
+              },
+              {
+                "type": "Accused's prior criminal convictions",
+                "timing": "if prosecution intends to rely on them",
+                "required": true
+              },
+              {
+                "type": "Any material that may assist defence",
+                "timing": "continuous obligation",
+                "required": true,
+                "description": "Brady material - exculpatory evidence"
+              },
+              {
+                "type": "Expert reports and certificates",
+                "timing": "reasonable time before hearing",
+                "required": true,
+                "examples": ["Forensic certificates", "Breath test calibration certificates", "Expert analysis reports"]
+              }
+            ],
+            "ongoing_obligation": "Continuing obligation to disclose relevant material until matter finalized",
+            "consequences_of_breach": {
+              "late_disclosure": {
+                "severity": "high",
+                "impact": "May warrant adjournment or exclusion of evidence",
+                "remedy": "Application for adjournment or exclusion under Evidence Act s.137-138"
+              },
+              "incomplete_disclosure": {
+                "severity": "critical",
+                "impact": "Procedural unfairness - may result in stay of proceedings",
+                "remedy": "Application for stay or permanent stay of proceedings"
+              },
+              "failure_to_disclose_exculpatory": {
+                "severity": "critical",
+                "impact": "Miscarriage of justice - breach of Brady obligation",
+                "remedy": "Appeal ground if convicted, stay application if discovered pre-trial"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "Evidence_Act_2008": {
+    "fullName": "Evidence Act 2008 (Vic)",
+    "shortName": "EA 2008",
+    "category": "Evidence",
+    "sections": {
+      "59": {
+        "title": "The hearsay rule",
+        "fullSection": "s.59",
+        "subsections": {
+          "1": {
+            "reference": "s.59(1)",
+            "full_text": "Evidence of a previous representation made by a person is not admissible to prove the existence of a fact that it can reasonably be supposed that the person intended to assert by the representation.",
+            "rule": "Hearsay evidence inadmissible unless exception applies",
+            "elements": [
+              {
+                "name": "previous_representation",
+                "type": "hearsay_indicator",
+                "keywords": ["told", "said", "stated", "reported", "informed", "represented", "heard from"],
+                "description": "Statement made by person not called as witness"
+              },
+              {
+                "name": "tendered_for_truth",
+                "type": "hearsay_indicator",
+                "description": "Statement tendered to prove truth of its contents"
+              }
+            ],
+            "consequence": "Inadmissible unless exception applies",
+            "exceptions_available": ["s.60", "s.63", "s.64", "s.65", "s.66", "s.69"]
+          }
+        }
+      },
+      "60": {
+        "title": "Exception to hearsay rule—evidence relevant for a non-hearsay purpose",
+        "fullSection": "s.60",
+        "description": "Evidence admissible for non-hearsay purpose is admissible for hearsay purpose"
+      },
+      "63": {
+        "title": "Exception: civil proceedings—business records",
+        "fullSection": "s.63",
+        "applies_to": "civil proceedings only",
+        "conditions": [
+          "representation made in business record",
+          "person who made representation had personal knowledge",
+          "representation made in course of business"
+        ]
+      },
+      "69": {
+        "title": "Exception: business records (criminal proceedings)",
+        "fullSection": "s.69",
+        "applies_to": "criminal proceedings",
+        "subsections": {
+          "1": {
+            "reference": "s.69(1)",
+            "conditions": [
+              {
+                "element": "document is business record",
+                "keywords": ["business record", "kept in business", "course of business"],
+                "required": true
+              },
+              {
+                "element": "representation based on personal knowledge",
+                "keywords": ["personal knowledge", "firsthand knowledge", "observed"],
+                "required": true
+              },
+              {
+                "element": "person made/supplied representation in business course",
+                "keywords": ["in the course of business", "business activities"],
+                "required": true
+              },
+              {
+                "element": "document kept in business course",
+                "keywords": ["kept in the course of business", "business records"],
+                "required": true
+              }
+            ],
+            "typical_examples": [
+              "Police LEAP records",
+              "Hospital medical records",
+              "Business transaction logs",
+              "Banking records",
+              "Employment records"
+            ]
+          }
+        }
+      },
+      "137": {
+        "title": "Exclusion of prejudicial evidence in criminal proceedings",
+        "fullSection": "s.137",
+        "subsections": {
+          "1": {
+            "reference": "s.137(1)",
+            "full_text": "In a criminal proceeding, the court must refuse to admit evidence adduced by the prosecutor if its probative value is substantially outweighed by the danger of unfair prejudice to the defendant.",
+            "test": "Probative value substantially outweighed by prejudicial effect",
+            "discretion": "Court MUST refuse if test satisfied (mandatory exclusion)",
+            "elements": [
+              {
+                "name": "probative_value",
+                "type": "assessment_factor",
+                "considerations": ["Relevance", "Reliability", "Significance to case"],
+                "keywords": ["probative value", "relevance", "reliability"]
+              },
+              {
+                "name": "prejudicial_effect",
+                "type": "assessment_factor",
+                "considerations": ["Unfairness to defendant", "Risk of misuse by jury", "Difficulty in challenging"],
+                "keywords": ["prejudicial", "unfair prejudice", "unfairness"]
+              },
+              {
+                "name": "substantially_outweighed",
+                "type": "balancing_test",
+                "standard": "Substantial outweighing required",
+                "description": "Probative value must be SUBSTANTIALLY outweighed"
+              }
+            ],
+            "burden": "Accused to raise, prosecution to satisfy court probative value not substantially outweighed",
+            "standard": "Balance of probabilities"
+          }
+        }
+      },
+      "138": {
+        "title": "Exclusion of improperly or illegally obtained evidence",
+        "fullSection": "s.138",
+        "subsections": {
+          "1": {
+            "reference": "s.138(1)",
+            "full_text": "Evidence that was obtained improperly or in consequence of an impropriety or in consequence of a contravention of an Australian law is not to be admitted unless the desirability of admitting the evidence outweighs the undesirability of admitting evidence that has been obtained in the way in which the evidence was obtained.",
+            "test": "Desirability of admitting evidence vs undesirability of admitting improperly obtained evidence",
+            "discretion": "Court MAY refuse (discretionary exclusion)",
+            "elements": [
+              {
+                "name": "improperly_obtained",
+                "type": "threshold_requirement",
+                "keywords": ["improperly obtained", "impropriety", "improper"],
+                "triggers": ["breach of procedure", "breach of rules", "improper conduct"]
+              },
+              {
+                "name": "illegally_obtained",
+                "type": "threshold_requirement",
+                "keywords": ["illegally obtained", "contravention", "breach of law"],
+                "triggers": ["breach of statute", "unlawful conduct", "illegal"]
+              }
+            ],
+            "considerations": [
+              {
+                "factor": "Probative value of evidence",
+                "type": "desirability_factor"
+              },
+              {
+                "factor": "Importance of evidence in proceeding",
+                "type": "desirability_factor"
+              },
+              {
+                "factor": "Nature of relevant offence/proceeding",
+                "type": "contextual_factor"
+              },
+              {
+                "factor": "Gravity of impropriety or contravention",
+                "type": "undesirability_factor"
+              },
+              {
+                "factor": "Whether impropriety deliberate or reckless",
+                "type": "undesirability_factor"
+              },
+              {
+                "factor": "Whether impropriety contrary to Australian law",
+                "type": "undesirability_factor"
+              },
+              {
+                "factor": "Difficulty of obtaining evidence without impropriety",
+                "type": "contextual_factor"
+              },
+              {
+                "factor": "Whether evidence obtained from accused while under arrest",
+                "type": "undesirability_factor"
+              }
+            ],
+            "burden": "Party seeking exclusion bears burden of proof",
+            "standard": "Balance of probabilities"
+          }
+        }
+      }
+    }
+  },
+
+  "Magistrates_Court_Act_1989": {
+    "fullName": "Magistrates' Court Act 1989 (Vic)",
+    "shortName": "MCA 1989",
+    "category": "Courts",
+    "jurisdiction": {
+      "summary_criminal": {
+        "description": "All summary offences",
+        "monetary_limit": null
+      },
+      "indictable_triable_summarily": {
+        "description": "Certain indictable offences with consent",
+        "conditions": ["Accused consents", "Court satisfied appropriate"]
+      },
+      "civil": {
+        "description": "Civil claims",
+        "monetary_limit": 100000,
+        "currency": "AUD"
+      }
+    }
+  },
+
+  "Victoria_Police_Act_2013": {
+    "fullName": "Victoria Police Act 2013 (Vic)",
+    "shortName": "VPA 2013",
+    "category": "Police Powers",
+    "description": "Legislation governing police powers, duties, and conduct",
+    "key_provisions": {
+      "Part_4": {
+        "title": "Police powers and duties",
+        "description": "General police powers including arrest, search, seizure"
+      }
+    }
+  },
+
+  "Charter_of_Human_Rights_and_Responsibilities_Act_2006": {
+    "fullName": "Charter of Human Rights and Responsibilities Act 2006 (Vic)",
+    "shortName": "Charter 2006",
+    "category": "Human Rights",
+    "sections": {
+      "24": {
+        "title": "Fair hearing",
+        "fullSection": "s.24",
+        "description": "Right to fair hearing in civil and criminal proceedings"
+      },
+      "25": {
+        "title": "Rights in criminal proceedings",
+        "fullSection": "s.25",
+        "subsections": {
+          "1": {
+            "reference": "s.25(1)",
+            "description": "Minimum guarantees in criminal proceedings",
+            "rights": [
+              "Presumption of innocence",
+              "Right to be informed of charge",
+              "Right to adequate time and facilities to prepare defence",
+              "Right to trial without unreasonable delay",
+              "Right to examine witnesses",
+              "Right to interpreter if needed"
+            ]
+          }
+        }
+      }
+    }
+  }
+}
