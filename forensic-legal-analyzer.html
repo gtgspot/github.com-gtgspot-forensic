@@ -1,0 +1,1599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forensic Legal Document Analysis - Victorian Criminal Procedure</title>
+
+    <!-- React 18 via CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <!-- PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Mammoth.js for DOCX parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .upload-section {
+            background: #f8f9fa;
+            border: 3px dashed #6c757d;
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .upload-section.drag-over {
+            border-color: #007bff;
+            background: #e7f3ff;
+        }
+
+        .upload-options {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .upload-btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .upload-btn:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+        .url-input {
+            padding: 12px 20px;
+            border: 2px solid #ced4da;
+            border-radius: 6px;
+            font-size: 1em;
+            width: 400px;
+            max-width: 100%;
+        }
+
+        .preset-selector {
+            background: #ffffff;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .preset-selector h2 {
+            margin-bottom: 20px;
+            color: #2c3e50;
+        }
+
+        .preset-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .preset-card {
+            background: #f8f9fa;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .preset-card:hover {
+            border-color: #007bff;
+            background: #e7f3ff;
+            transform: translateY(-2px);
+        }
+
+        .preset-card.selected {
+            border-color: #28a745;
+            background: #d4edda;
+        }
+
+        .preset-card h3 {
+            font-size: 1.1em;
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        .preset-card p {
+            font-size: 0.9em;
+            color: #6c757d;
+            line-height: 1.4;
+        }
+
+        .analyze-btn {
+            background: #28a745;
+            color: white;
+            padding: 15px 50px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: 700;
+            width: 100%;
+            margin-bottom: 30px;
+            transition: all 0.3s ease;
+        }
+
+        .analyze-btn:hover {
+            background: #218838;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(40, 167, 69, 0.3);
+        }
+
+        .analyze-btn:disabled {
+            background: #6c757d;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .results-section {
+            background: #ffffff;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .result-preset {
+            border-bottom: 2px solid #dee2e6;
+            padding: 25px 0;
+        }
+
+        .result-preset:last-child {
+            border-bottom: none;
+        }
+
+        .result-preset h3 {
+            color: #2c3e50;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+        }
+
+        .metric-card label {
+            font-weight: 600;
+            color: #6c757d;
+            font-size: 0.9em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .metric-card .value {
+            font-size: 1.5em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+
+        .findings {
+            margin-top: 20px;
+        }
+
+        .finding-item {
+            background: #ffffff;
+            border: 1px solid #dee2e6;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+
+        .finding-item.HIGH {
+            border-left-color: #dc3545;
+            background: #fff5f5;
+        }
+
+        .finding-item.MEDIUM {
+            border-left-color: #ffc107;
+            background: #fffbf0;
+        }
+
+        .finding-item.LOW {
+            border-left-color: #17a2b8;
+            background: #f0f9ff;
+        }
+
+        .finding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+        .severity-badge {
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 0.85em;
+        }
+
+        .severity-badge.HIGH {
+            background: #dc3545;
+            color: white;
+        }
+
+        .severity-badge.MEDIUM {
+            background: #ffc107;
+            color: #000;
+        }
+
+        .severity-badge.LOW {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .finding-content {
+            font-size: 0.95em;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        .finding-location {
+            font-size: 0.85em;
+            color: #6c757d;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .context-snippet {
+            background: #f8f9fa;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            overflow-x: auto;
+        }
+
+        .key-terms {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+        }
+
+        .term-badge {
+            background: #007bff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            font-weight: 600;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6c757d;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #007bff;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .document-info {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+
+        .document-info h3 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+
+        .document-info p {
+            color: #495057;
+            margin: 5px 0;
+        }
+
+        .error-message {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            border-radius: 8px;
+            padding: 20px;
+            color: #721c24;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef } = React;
+
+        // Victorian Legal Frameworks Database
+        const VICTORIAN_LEGAL_FRAMEWORKS = {
+            magistratesCourt: {
+                name: "Magistrates' Court Act 1989 (Vic)",
+                shortName: "Magistrates' Court Act 1989",
+                jurisdiction: "Victoria",
+                sections: {
+                    general: "Magistrates' Court Act 1989"
+                }
+            },
+            criminalProcedure: {
+                name: "Criminal Procedure Act 2009 (Vic)",
+                shortName: "Criminal Procedure Act 2009",
+                jurisdiction: "Victoria",
+                parts: {
+                    "Part 3.3": "Disclosure",
+                },
+                sections: {
+                    "185": "Defence disclosure",
+                    "187": "Prosecution disclosure"
+                }
+            },
+            evidence: {
+                name: "Evidence Act 2008 (Vic)",
+                shortName: "Evidence Act 2008",
+                jurisdiction: "Victoria",
+                chapters: {
+                    "Chapter 2": "Admissibility",
+                    "Chapter 3": "Hearsay rule"
+                },
+                sections: {
+                    "69": "Business records exception",
+                    "137": "Discretion to exclude prejudicial evidence",
+                    "138": "Discretion to exclude improperly or illegally obtained evidence"
+                }
+            },
+            roadSafety: {
+                name: "Road Safety Act 1986 (Vic)",
+                shortName: "Road Safety Act 1986",
+                jurisdiction: "Victoria",
+                sections: {
+                    "49(1)(a)": "Preliminary breath test - driver of motor vehicle",
+                    "49(1)(b)": "Preliminary breath test - in charge of motor vehicle",
+                    "49(1)(c)": "Preliminary breath test - recently driving",
+                    "49(1)(d)": "Preliminary breath test - attempting to put in motion",
+                    "49(1)(e)": "Preliminary breath test - traffic offence committed",
+                    "49(1)(f)": "Preliminary breath test - vehicle involved in accident",
+                    "49(1)(g)": "Preliminary breath test - reasonable belief alcohol consumed",
+                    "49(1)(h)": "Preliminary breath test - other prescribed circumstances",
+                    "55D": "Preliminary test authority and conditions",
+                    "55E": "Proper performance requirements",
+                    "55(1)": "Evidentiary breath test requirements"
+                }
+            }
+        };
+
+        // Analysis Presets Configuration
+        const ANALYSIS_PRESETS = [
+            {
+                id: 1,
+                name: "Statutory Procedural Analysis",
+                description: "Identifies statutory references, mandatory procedural language, jurisdictional prerequisites, dates, times, and locations"
+            },
+            {
+                id: 2,
+                name: "Contextual Analysis",
+                description: "Extracts temporal markers, conditional statements, authority references, and maps sequence of events"
+            },
+            {
+                id: 3,
+                name: "Jurisprudential Analysis",
+                description: "Identifies common law references, legal principles, precedent citations, and Latin maxims"
+            },
+            {
+                id: 4,
+                name: "Objective Textual Analysis",
+                description: "Analyzes plain meaning, grammatical structure, identifies ambiguous and undefined terms"
+            },
+            {
+                id: 5,
+                name: "Subjective Intent Analysis",
+                description: "Extracts stated intentions, identifies subjective vs objective statements, notes qualifiers"
+            },
+            {
+                id: 6,
+                name: "Purposive Analysis",
+                description: "Identifies stated purposes, policy objectives, and mischief being addressed"
+            },
+            {
+                id: 7,
+                name: "Comparative Cross-Reference",
+                description: "Compares multiple documents, flags contradictions, identifies omissions and inconsistencies"
+            },
+            {
+                id: 8,
+                name: "Evidentiary Standards (Victorian)",
+                description: "Checks Victorian-specific compliance: s.49 preliminary tests, s.55D authority, s.55E proper performance, s.137/138 discretions, hearsay issues"
+            }
+        ];
+
+        // Text Extraction Functions
+        const extractTextFromPDF = async (file) => {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    try {
+                        const typedarray = new Uint8Array(this.result);
+                        const loadingTask = pdfjsLib.getDocument(typedarray);
+                        const pdf = await loadingTask.promise;
+                        let fullText = '';
+
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n';
+                        }
+
+                        resolve(fullText);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
+            });
+        };
+
+        const extractTextFromDOCX = async (file) => {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                fileReader.onload = async function() {
+                    try {
+                        const arrayBuffer = this.result;
+                        const result = await mammoth.extractRawText({ arrayBuffer });
+                        resolve(result.value);
+                    } catch (error) {
+                        reject(error);
+                    }
+                };
+                fileReader.onerror = reject;
+                fileReader.readAsArrayBuffer(file);
+            });
+        };
+
+        const extractTextFromTXT = async (file) => {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                fileReader.onload = function() {
+                    resolve(this.result);
+                };
+                fileReader.onerror = reject;
+                fileReader.readAsText(file);
+            });
+        };
+
+        const extractText = async (file) => {
+            const fileName = file.name.toLowerCase();
+
+            if (fileName.endsWith('.pdf')) {
+                return await extractTextFromPDF(file);
+            } else if (fileName.endsWith('.docx')) {
+                return await extractTextFromDOCX(file);
+            } else if (fileName.endsWith('.txt')) {
+                return await extractTextFromTXT(file);
+            } else if (fileName.endsWith('.doc')) {
+                throw new Error('.DOC format not supported. Please convert to .DOCX format.');
+            } else {
+                throw new Error('Unsupported file format. Please use .txt, .pdf, or .docx files.');
+            }
+        };
+
+        // Analysis Engine
+        class DocumentAnalyzer {
+            constructor(text, fileName = 'document') {
+                this.text = text;
+                this.fileName = fileName;
+                this.lines = text.split('\n');
+                this.words = text.split(/\s+/);
+            }
+
+            // Preset 1: Statutory Procedural Analysis
+            analyzeStatutoryProcedural() {
+                const findings = [];
+                const statutoryRefs = new Set();
+                const mandatoryLanguage = [];
+                const datesTimesLocations = [];
+                const keyTerms = new Set();
+
+                // Find statutory references
+                const statPatterns = [
+                    /\b(?:section|s\.|sec\.|sect\.)\s*(\d+[A-Z]*(?:\(\d+\))?(?:\([a-z]\))?)/gi,
+                    /\b(Part\s+\d+(?:\.\d+)?)/gi,
+                    /\b(Chapter\s+\d+)/gi
+                ];
+
+                statPatterns.forEach(pattern => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        const ref = match[0];
+                        statutoryRefs.add(ref);
+                        const context = this.getContext(match.index, 50);
+                        const location = this.getLocation(match.index);
+
+                        findings.push({
+                            type: 'Statutory Reference',
+                            severity: 'MEDIUM',
+                            description: `Found statutory reference: ${ref}`,
+                            location: location,
+                            context: context
+                        });
+                    }
+                });
+
+                // Find mandatory procedural language
+                const mandatoryPatterns = [
+                    /\b(must|shall|required to|mandatory|obliged to|duty to)\b/gi
+                ];
+
+                mandatoryPatterns.forEach(pattern => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        const term = match[0];
+                        keyTerms.add(term.toLowerCase());
+                        mandatoryLanguage.push({
+                            term: term,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                if (mandatoryLanguage.length > 0) {
+                    findings.push({
+                        type: 'Mandatory Procedural Language',
+                        severity: 'HIGH',
+                        description: `Found ${mandatoryLanguage.length} instances of mandatory procedural language`,
+                        location: mandatoryLanguage[0].location,
+                        context: mandatoryLanguage[0].context
+                    });
+                }
+
+                // Find dates, times, locations
+                const datePattern = /\b(\d{1,2}[-\/]\d{1,2}[-\/]\d{2,4}|\d{1,2}\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+\d{4})/gi;
+                const timePattern = /\b(\d{1,2}:\d{2}(?::\d{2})?\s*(?:am|pm|AM|PM)?)/g;
+
+                let match;
+                while ((match = datePattern.exec(this.text)) !== null) {
+                    keyTerms.add('date');
+                    findings.push({
+                        type: 'Temporal Reference - Date',
+                        severity: 'MEDIUM',
+                        description: `Date found: ${match[0]}`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                while ((match = timePattern.exec(this.text)) !== null) {
+                    keyTerms.add('time');
+                    findings.push({
+                        type: 'Temporal Reference - Time',
+                        severity: 'MEDIUM',
+                        description: `Time found: ${match[0]}`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Check for missing jurisdictional prerequisites
+                const jurisdictionCheck = /\b(Victoria|Victorian|Magistrates'?\s*Court|County\s*Court|Supreme\s*Court)/gi;
+                if (!jurisdictionCheck.test(this.text)) {
+                    findings.push({
+                        type: 'Missing Jurisdictional Reference',
+                        severity: 'HIGH',
+                        description: 'No clear jurisdictional reference found in document',
+                        location: 'N/A',
+                        context: 'Document should specify Victorian jurisdiction'
+                    });
+                }
+
+                return {
+                    presetName: 'Statutory Procedural Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: Array.from(statutoryRefs),
+                    findings: findings
+                };
+            }
+
+            // Preset 2: Contextual Analysis
+            analyzeContextual() {
+                const findings = [];
+                const keyTerms = new Set();
+
+                // Temporal markers
+                const temporalPatterns = [
+                    { pattern: /\b(before|prior to|preceding)\b/gi, type: 'Temporal Marker - Before' },
+                    { pattern: /\b(after|following|subsequent to)\b/gi, type: 'Temporal Marker - After' },
+                    { pattern: /\b(during|whilst|while|throughout)\b/gi, type: 'Temporal Marker - During' },
+                    { pattern: /\b(at the time|at that time|at this time)\b/gi, type: 'Temporal Marker - At Time' }
+                ];
+
+                temporalPatterns.forEach(({pattern, type}) => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(match[0].toLowerCase());
+                        findings.push({
+                            type: type,
+                            severity: 'MEDIUM',
+                            description: `Temporal marker found: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Conditional statements
+                const conditionalPatterns = [
+                    { pattern: /\b(if|where|when)\b/gi, type: 'Conditional - If/Where/When' },
+                    { pattern: /\b(unless|except|save)\b/gi, type: 'Conditional - Exception' },
+                    { pattern: /\b(provided that|on condition that)\b/gi, type: 'Conditional - Provision' }
+                ];
+
+                conditionalPatterns.forEach(({pattern, type}) => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(match[0].toLowerCase());
+                        findings.push({
+                            type: type,
+                            severity: 'MEDIUM',
+                            description: `Conditional statement: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Authority references
+                const authorityPattern = /\b(officer|constable|police|informant|member|sergeant|detective|inspector)\b/gi;
+                let match;
+                while ((match = authorityPattern.exec(this.text)) !== null) {
+                    keyTerms.add(match[0].toLowerCase());
+                    findings.push({
+                        type: 'Authority Reference',
+                        severity: 'MEDIUM',
+                        description: `Authority figure mentioned: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Sequence markers
+                const sequencePattern = /\b(first|firstly|second|secondly|third|thirdly|then|next|finally|subsequently)\b/gi;
+                while ((match = sequencePattern.exec(this.text)) !== null) {
+                    keyTerms.add('sequence-marker');
+                    findings.push({
+                        type: 'Sequence Marker',
+                        severity: 'LOW',
+                        description: `Event sequence indicator: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                return {
+                    presetName: 'Contextual Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: [],
+                    findings: findings
+                };
+            }
+
+            // Preset 3: Jurisprudential Analysis
+            analyzeJurisprudential() {
+                const findings = [];
+                const keyTerms = new Set();
+                const statutoryRefs = new Set();
+
+                // Common law references
+                const commonLawPattern = /\b(common law|precedent|stare decisis|ratio decidendi|obiter dicta)\b/gi;
+                let match;
+                while ((match = commonLawPattern.exec(this.text)) !== null) {
+                    keyTerms.add(match[0].toLowerCase());
+                    findings.push({
+                        type: 'Common Law Reference',
+                        severity: 'MEDIUM',
+                        description: `Common law concept: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Legal principles
+                const principlePatterns = [
+                    /\b(natural justice|procedural fairness|reasonable doubt|burden of proof)\b/gi,
+                    /\b(presumption of innocence|right to silence|fair hearing)\b/gi
+                ];
+
+                principlePatterns.forEach(pattern => {
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(match[0].toLowerCase());
+                        findings.push({
+                            type: 'Legal Principle',
+                            severity: 'HIGH',
+                            description: `Legal principle identified: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Case citations
+                const caseCitationPattern = /\b([A-Z][a-z]+\s+v\.?\s+[A-Z][a-z]+(?:\s+\[\d{4}\])?)/g;
+                while ((match = caseCitationPattern.exec(this.text)) !== null) {
+                    keyTerms.add('case-citation');
+                    statutoryRefs.add(match[0]);
+                    findings.push({
+                        type: 'Case Citation',
+                        severity: 'MEDIUM',
+                        description: `Case law reference: ${match[0]}`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Latin maxims
+                const latinMaxims = [
+                    'actus reus', 'mens rea', 'ultra vires', 'bona fide', 'prima facie',
+                    'res judicata', 'habeas corpus', 'certiorari', 'mandamus', 'de facto',
+                    'de jure', 'inter alia', 'ex parte', 'in camera', 'subpoena duces tecum'
+                ];
+
+                latinMaxims.forEach(maxim => {
+                    const pattern = new RegExp('\\b' + maxim + '\\b', 'gi');
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(maxim);
+                        findings.push({
+                            type: 'Latin Maxim',
+                            severity: 'LOW',
+                            description: `Latin legal term: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                return {
+                    presetName: 'Jurisprudential Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: Array.from(statutoryRefs),
+                    findings: findings
+                };
+            }
+
+            // Preset 4: Objective Textual Analysis
+            analyzeObjectiveTextual() {
+                const findings = [];
+                const keyTerms = new Set();
+
+                // Ambiguous terms
+                const ambiguousTerms = [
+                    'reasonable', 'appropriate', 'adequate', 'sufficient', 'proper',
+                    'may', 'might', 'could', 'approximately', 'about', 'around'
+                ];
+
+                ambiguousTerms.forEach(term => {
+                    const pattern = new RegExp('\\b' + term + '\\b', 'gi');
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(term);
+                        findings.push({
+                            type: 'Ambiguous Term',
+                            severity: 'MEDIUM',
+                            description: `Ambiguous/subjective term found: "${match[0]}" - requires objective definition`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Undefined technical terms (common in legal documents)
+                const technicalTerms = [
+                    'preliminary test', 'oral fluid', 'prescribed concentration',
+                    'motor vehicle', 'public place', 'traffic offence'
+                ];
+
+                technicalTerms.forEach(term => {
+                    const pattern = new RegExp('\\b' + term + '\\b', 'gi');
+                    let match;
+                    if ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(term);
+
+                        // Check if term is defined in the document
+                        const definitionPattern = new RegExp(term + '\\s+means|' + term + '\\s+is defined', 'i');
+                        if (!definitionPattern.test(this.text)) {
+                            findings.push({
+                                type: 'Undefined Technical Term',
+                                severity: 'HIGH',
+                                description: `Technical term "${term}" used but not defined in document`,
+                                location: this.getLocation(match.index),
+                                context: this.getContext(match.index, 50)
+                            });
+                        }
+                    }
+                });
+
+                // Complex sentence structures
+                const sentences = this.text.split(/[.!?]+/);
+                sentences.forEach((sentence, idx) => {
+                    const wordCount = sentence.split(/\s+/).length;
+                    if (wordCount > 40) {
+                        keyTerms.add('complex-sentence');
+                        findings.push({
+                            type: 'Complex Sentence Structure',
+                            severity: 'LOW',
+                            description: `Sentence ${idx + 1} contains ${wordCount} words - may affect clarity`,
+                            location: `Sentence ${idx + 1}`,
+                            context: sentence.substring(0, 100) + '...'
+                        });
+                    }
+                });
+
+                // Double negatives
+                const doubleNegPattern = /\b(not\s+un|not\s+in|no\s+lack|without\s+fail)/gi;
+                let match;
+                while ((match = doubleNegPattern.exec(this.text)) !== null) {
+                    keyTerms.add('double-negative');
+                    findings.push({
+                        type: 'Double Negative',
+                        severity: 'MEDIUM',
+                        description: `Potential double negative found: "${match[0]}" - affects plain meaning`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                return {
+                    presetName: 'Objective Textual Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: [],
+                    findings: findings
+                };
+            }
+
+            // Preset 5: Subjective Intent Analysis
+            analyzeSubjectiveIntent() {
+                const findings = [];
+                const keyTerms = new Set();
+
+                // Stated intentions and beliefs
+                const intentionPatterns = [
+                    { pattern: /\b(believed|believe|believing)\b/gi, type: 'Belief' },
+                    { pattern: /\b(suspected|suspect|suspecting)\b/gi, type: 'Suspicion' },
+                    { pattern: /\b(formed\s+(?:the\s+)?opinion|opinion|view)\b/gi, type: 'Opinion' },
+                    { pattern: /\b(thought|think|thinking)\b/gi, type: 'Thought' },
+                    { pattern: /\b(intended|intend|intending|intention)\b/gi, type: 'Intent' }
+                ];
+
+                intentionPatterns.forEach(({pattern, type}) => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(type.toLowerCase());
+                        findings.push({
+                            type: `Subjective ${type}`,
+                            severity: 'HIGH',
+                            description: `Subjective ${type.toLowerCase()} expressed: "${match[0]}" - requires objective basis`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Qualifiers (hedging language)
+                const qualifierPatterns = [
+                    /\b(may have|might have|could have|possibly|perhaps|apparently)\b/gi,
+                    /\b(appeared to|seemed to|looked like)\b/gi,
+                    /\b(allegedly|purportedly|reportedly)\b/gi
+                ];
+
+                qualifierPatterns.forEach(pattern => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add('qualifier');
+                        findings.push({
+                            type: 'Qualifier/Hedge',
+                            severity: 'MEDIUM',
+                            description: `Qualifying language: "${match[0]}" - indicates uncertainty`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Objective vs Subjective markers
+                const objectivePattern = /\b(observed|witnessed|measured|recorded|documented|photographed)\b/gi;
+                let objectiveCount = 0;
+                let match;
+                while ((match = objectivePattern.exec(this.text)) !== null) {
+                    objectiveCount++;
+                    keyTerms.add('objective-fact');
+                }
+
+                const subjectiveCount = findings.filter(f => f.type.includes('Subjective')).length;
+
+                if (subjectiveCount > objectiveCount * 2) {
+                    findings.push({
+                        type: 'Subjective vs Objective Balance',
+                        severity: 'HIGH',
+                        description: `Document heavily weighted toward subjective statements (${subjectiveCount}) vs objective facts (${objectiveCount})`,
+                        location: 'Overall Document',
+                        context: 'Consider supporting subjective statements with objective evidence'
+                    });
+                }
+
+                return {
+                    presetName: 'Subjective Intent Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: [],
+                    findings: findings
+                };
+            }
+
+            // Preset 6: Purposive Analysis
+            analyzePurposive() {
+                const findings = [];
+                const keyTerms = new Set();
+
+                // Purpose statements
+                const purposePatterns = [
+                    { pattern: /\b(purpose of|object of|objective|aim|intent)\b/gi, type: 'Purpose Statement' },
+                    { pattern: /\b(in order to|so as to|for the purpose of)\b/gi, type: 'Purpose Clause' },
+                    { pattern: /\b(policy|public interest|community safety)\b/gi, type: 'Policy Objective' }
+                ];
+
+                purposePatterns.forEach(({pattern, type}) => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(type.toLowerCase());
+                        findings.push({
+                            type: type,
+                            severity: 'MEDIUM',
+                            description: `${type} identified: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Mischief being addressed
+                const mischiefPatterns = [
+                    /\b(prevent|prevention|deter|deterrence|protect|protection)\b/gi,
+                    /\b(ensure|ensuring|safeguard|safeguarding)\b/gi,
+                    /\b(risk|danger|harm|threat)\b/gi
+                ];
+
+                mischiefPatterns.forEach(pattern => {
+                    let match;
+                    while ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add('mischief-addressed');
+                        findings.push({
+                            type: 'Mischief/Risk Addressed',
+                            severity: 'MEDIUM',
+                            description: `Risk/mischief language: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Legislative intent indicators
+                const intentPattern = /\b(legislature\s+intended|parliament\s+intended|legislative\s+intent)\b/gi;
+                let match;
+                while ((match = intentPattern.exec(this.text)) !== null) {
+                    keyTerms.add('legislative-intent');
+                    findings.push({
+                        type: 'Legislative Intent',
+                        severity: 'HIGH',
+                        description: `Legislative intent reference: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                return {
+                    presetName: 'Purposive Analysis',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: [],
+                    findings: findings
+                };
+            }
+
+            // Preset 7: Comparative Cross-Reference
+            analyzeComparative() {
+                return {
+                    presetName: 'Comparative Cross-Reference',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: [],
+                    statutoryReferences: [],
+                    findings: [{
+                        type: 'Comparison Note',
+                        severity: 'LOW',
+                        description: 'Comparative analysis requires multiple documents. Upload additional documents for cross-reference analysis.',
+                        location: 'N/A',
+                        context: 'This preset will compare facts, dates, times, and statements across documents when multiple files are uploaded.'
+                    }]
+                };
+            }
+
+            // Preset 8: Evidentiary Standards (Victorian)
+            analyzeEvidentiary() {
+                const findings = [];
+                const keyTerms = new Set();
+                const statutoryRefs = new Set();
+
+                // Section 49 preliminary test requirements
+                const s49Requirements = [
+                    { term: 'driver', section: 's.49(1)(a)' },
+                    { term: 'in charge', section: 's.49(1)(b)' },
+                    { term: 'recently driving', section: 's.49(1)(c)' },
+                    { term: 'attempting to put in motion', section: 's.49(1)(d)' },
+                    { term: 'traffic offence', section: 's.49(1)(e)' },
+                    { term: 'accident', section: 's.49(1)(f)' },
+                    { term: 'reasonable belief.*alcohol', section: 's.49(1)(g)' }
+                ];
+
+                s49Requirements.forEach(({term, section}) => {
+                    const pattern = new RegExp(term, 'gi');
+                    let match;
+                    if ((match = pattern.exec(this.text)) !== null) {
+                        keyTerms.add(term);
+                        statutoryRefs.add(section);
+                        findings.push({
+                            type: `Road Safety Act ${section} Compliance Check`,
+                            severity: 'HIGH',
+                            description: `Potential ${section} trigger found: "${match[0]}"`,
+                            location: this.getLocation(match.index),
+                            context: this.getContext(match.index, 50)
+                        });
+                    }
+                });
+
+                // Section 55D authority and conditions
+                const s55DPattern = /\b(authority|authorized|authorised|proper authority)\b/gi;
+                let match;
+                while ((match = s55DPattern.exec(this.text)) !== null) {
+                    keyTerms.add('authority');
+                    statutoryRefs.add('s.55D');
+                    findings.push({
+                        type: 'Road Safety Act s.55D - Authority Check',
+                        severity: 'HIGH',
+                        description: `Authority reference found - verify s.55D compliance: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Section 55E proper performance
+                const s55EPattern = /\b(proper|properly|performance|performed|calibrat|maintain)\b/gi;
+                while ((match = s55EPattern.exec(this.text)) !== null) {
+                    keyTerms.add('proper-performance');
+                    statutoryRefs.add('s.55E');
+                    findings.push({
+                        type: 'Road Safety Act s.55E - Proper Performance',
+                        severity: 'HIGH',
+                        description: `Performance/maintenance reference - s.55E compliance: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Evidence Act s.137 - Prejudicial evidence
+                const prejudicePattern = /\b(prejudic|unfair|probative value)\b/gi;
+                while ((match = prejudicePattern.exec(this.text)) !== null) {
+                    keyTerms.add('prejudice');
+                    statutoryRefs.add('Evidence Act s.137');
+                    findings.push({
+                        type: 'Evidence Act s.137 - Prejudicial Evidence',
+                        severity: 'HIGH',
+                        description: `Potential s.137 discretion trigger: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Evidence Act s.138 - Improperly obtained evidence
+                const improperPattern = /\b(improperly|illegally|unlawfully obtained|breach|violation)\b/gi;
+                while ((match = improperPattern.exec(this.text)) !== null) {
+                    keyTerms.add('improper-evidence');
+                    statutoryRefs.add('Evidence Act s.138');
+                    findings.push({
+                        type: 'Evidence Act s.138 - Improperly Obtained Evidence',
+                        severity: 'HIGH',
+                        description: `Potential s.138 discretion trigger: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Hearsay issues (Chapter 3)
+                const hearsayPattern = /\b(hearsay|told|said|stated|reported|informed|represented)\b/gi;
+                while ((match = hearsayPattern.exec(this.text)) !== null) {
+                    keyTerms.add('hearsay');
+                    statutoryRefs.add('Evidence Act Chapter 3');
+                    findings.push({
+                        type: 'Evidence Act Chapter 3 - Hearsay Issue',
+                        severity: 'MEDIUM',
+                        description: `Potential hearsay: "${match[0]}" - check exceptions`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Business records exception (s.69)
+                const businessRecordsPattern = /\b(business record|document|register|log|database)\b/gi;
+                while ((match = businessRecordsPattern.exec(this.text)) !== null) {
+                    keyTerms.add('business-records');
+                    statutoryRefs.add('Evidence Act s.69');
+                    findings.push({
+                        type: 'Evidence Act s.69 - Business Records',
+                        severity: 'MEDIUM',
+                        description: `Potential business records exception: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                // Disclosure requirements
+                const disclosurePattern = /\b(disclos|provide|furnish|supply).*\b(evidence|material|document)\b/gi;
+                while ((match = disclosurePattern.exec(this.text)) !== null) {
+                    keyTerms.add('disclosure');
+                    statutoryRefs.add('Criminal Procedure Act Part 3.3');
+                    findings.push({
+                        type: 'Criminal Procedure Act Part 3.3 - Disclosure',
+                        severity: 'HIGH',
+                        description: `Disclosure obligation reference: "${match[0]}"`,
+                        location: this.getLocation(match.index),
+                        context: this.getContext(match.index, 50)
+                    });
+                }
+
+                return {
+                    presetName: 'Evidentiary Standards (Victorian)',
+                    wordCount: this.words.filter(w => w.length > 0).length,
+                    lineCount: this.lines.length,
+                    keyTerms: Array.from(keyTerms),
+                    statutoryReferences: Array.from(statutoryRefs),
+                    findings: findings
+                };
+            }
+
+            // Helper methods
+            getLocation(index) {
+                const beforeText = this.text.substring(0, index);
+                const lineNumber = beforeText.split('\n').length;
+                const lines = beforeText.split('\n');
+                const charInLine = lines[lines.length - 1].length;
+                return `Line ${lineNumber}, Character ${charInLine}`;
+            }
+
+            getContext(index, chars) {
+                const start = Math.max(0, index - chars);
+                const end = Math.min(this.text.length, index + chars);
+                const context = this.text.substring(start, end);
+                return '...' + context + '...';
+            }
+
+            // Execute analysis based on selected presets
+            analyze(presetIds) {
+                const results = [];
+
+                if (presetIds.includes(1)) {
+                    results.push(this.analyzeStatutoryProcedural());
+                }
+                if (presetIds.includes(2)) {
+                    results.push(this.analyzeContextual());
+                }
+                if (presetIds.includes(3)) {
+                    results.push(this.analyzeJurisprudential());
+                }
+                if (presetIds.includes(4)) {
+                    results.push(this.analyzeObjectiveTextual());
+                }
+                if (presetIds.includes(5)) {
+                    results.push(this.analyzeSubjectiveIntent());
+                }
+                if (presetIds.includes(6)) {
+                    results.push(this.analyzePurposive());
+                }
+                if (presetIds.includes(7)) {
+                    results.push(this.analyzeComparative());
+                }
+                if (presetIds.includes(8)) {
+                    results.push(this.analyzeEvidentiary());
+                }
+
+                return results;
+            }
+        }
+
+        // Main Application Component
+        function App() {
+            const [documents, setDocuments] = useState([]);
+            const [selectedPresets, setSelectedPresets] = useState([]);
+            const [results, setResults] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+            const [dragOver, setDragOver] = useState(false);
+            const fileInputRef = useRef(null);
+            const urlInputRef = useRef(null);
+
+            const handleFileSelect = async (files) => {
+                setError(null);
+                const fileArray = Array.from(files);
+
+                try {
+                    const extractedDocs = await Promise.all(
+                        fileArray.map(async (file) => {
+                            const text = await extractText(file);
+                            return {
+                                name: file.name,
+                                text: text,
+                                size: file.size
+                            };
+                        })
+                    );
+
+                    setDocuments(prev => [...prev, ...extractedDocs]);
+                } catch (err) {
+                    setError(err.message);
+                }
+            };
+
+            const handleDrop = (e) => {
+                e.preventDefault();
+                setDragOver(false);
+                handleFileSelect(e.dataTransfer.files);
+            };
+
+            const handleDragOver = (e) => {
+                e.preventDefault();
+                setDragOver(true);
+            };
+
+            const handleDragLeave = () => {
+                setDragOver(false);
+            };
+
+            const handleURLInput = async () => {
+                const url = urlInputRef.current.value;
+                if (!url) return;
+
+                setError(null);
+                setLoading(true);
+
+                try {
+                    const response = await fetch(url);
+                    const text = await response.text();
+
+                    setDocuments(prev => [...prev, {
+                        name: url.split('/').pop() || 'URL Document',
+                        text: text,
+                        size: text.length
+                    }]);
+
+                    urlInputRef.current.value = '';
+                } catch (err) {
+                    setError('Failed to fetch URL: ' + err.message);
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            const togglePreset = (presetId) => {
+                setSelectedPresets(prev => {
+                    if (prev.includes(presetId)) {
+                        return prev.filter(id => id !== presetId);
+                    } else {
+                        return [...prev, presetId];
+                    }
+                });
+            };
+
+            const handleAnalyze = () => {
+                if (documents.length === 0 || selectedPresets.length === 0) {
+                    setError('Please upload at least one document and select at least one analysis preset.');
+                    return;
+                }
+
+                setLoading(true);
+                setError(null);
+
+                setTimeout(() => {
+                    const allResults = documents.map(doc => {
+                        const analyzer = new DocumentAnalyzer(doc.text, doc.name);
+                        return {
+                            documentName: doc.name,
+                            results: analyzer.analyze(selectedPresets)
+                        };
+                    });
+
+                    setResults(allResults);
+                    setLoading(false);
+                }, 500);
+            };
+
+            return (
+                <div className="container">
+                    <div className="header">
+                        <h1>Forensic Legal Document Analysis</h1>
+                        <p>Victorian Criminal Procedure Framework</p>
+                    </div>
+
+                    <div className="main-content">
+                        {error && (
+                            <div className="error-message">
+                                <strong>Error:</strong> {error}
+                            </div>
+                        )}
+
+                        <div
+                            className={`upload-section ${dragOver ? 'drag-over' : ''}`}
+                            onDrop={handleDrop}
+                            onDragOver={handleDragOver}
+                            onDragLeave={handleDragLeave}
+                        >
+                            <h2>Upload Documents</h2>
+                            <p>Supports: .txt, .pdf, .docx formats</p>
+
+                            <div className="upload-options">
+                                <input
+                                    type="file"
+                                    ref={fileInputRef}
+                                    onChange={(e) => handleFileSelect(e.target.files)}
+                                    multiple
+                                    accept=".txt,.pdf,.docx"
+                                    style={{ display: 'none' }}
+                                />
+                                <button
+                                    className="upload-btn"
+                                    onClick={() => fileInputRef.current.click()}
+                                >
+                                    Choose Files
+                                </button>
+
+                                <input
+                                    type="text"
+                                    ref={urlInputRef}
+                                    className="url-input"
+                                    placeholder="Or enter document URL"
+                                />
+                                <button
+                                    className="upload-btn"
+                                    onClick={handleURLInput}
+                                >
+                                    Load from URL
+                                </button>
+                            </div>
+
+                            {documents.length > 0 && (
+                                <div className="document-info">
+                                    <h3>Loaded Documents ({documents.length})</h3>
+                                    {documents.map((doc, idx) => (
+                                        <p key={idx}>{doc.name} ({(doc.size / 1024).toFixed(2)} KB)</p>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="preset-selector">
+                            <h2>Select Analysis Presets</h2>
+                            <div className="preset-grid">
+                                {ANALYSIS_PRESETS.map(preset => (
+                                    <div
+                                        key={preset.id}
+                                        className={`preset-card ${selectedPresets.includes(preset.id) ? 'selected' : ''}`}
+                                        onClick={() => togglePreset(preset.id)}
+                                    >
+                                        <h3>{preset.id}. {preset.name}</h3>
+                                        <p>{preset.description}</p>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <button
+                            className="analyze-btn"
+                            onClick={handleAnalyze}
+                            disabled={documents.length === 0 || selectedPresets.length === 0 || loading}
+                        >
+                            {loading ? 'Analyzing...' : 'Analyze Documents'}
+                        </button>
+
+                        {loading && (
+                            <div className="loading">
+                                <div className="spinner"></div>
+                                <p>Performing forensic analysis...</p>
+                            </div>
+                        )}
+
+                        {results && !loading && (
+                            <div className="results-section">
+                                <h2>Analysis Results</h2>
+                                {results.map((docResult, docIdx) => (
+                                    <div key={docIdx}>
+                                        <div className="document-info">
+                                            <h3>Document: {docResult.documentName}</h3>
+                                        </div>
+
+                                        {docResult.results.map((result, idx) => (
+                                            <div key={idx} className="result-preset">
+                                                <h3>{result.presetName}</h3>
+
+                                                <div className="metrics">
+                                                    <div className="metric-card">
+                                                        <label>Word Count</label>
+                                                        <div className="value">{result.wordCount}</div>
+                                                    </div>
+                                                    <div className="metric-card">
+                                                        <label>Line Count</label>
+                                                        <div className="value">{result.lineCount}</div>
+                                                    </div>
+                                                    <div className="metric-card">
+                                                        <label>Findings</label>
+                                                        <div className="value">{result.findings.length}</div>
+                                                    </div>
+                                                    <div className="metric-card">
+                                                        <label>Key Terms</label>
+                                                        <div className="value">{result.keyTerms.length}</div>
+                                                    </div>
+                                                </div>
+
+                                                {result.keyTerms.length > 0 && (
+                                                    <div>
+                                                        <h4>Key Legal Terms Found:</h4>
+                                                        <div className="key-terms">
+                                                            {result.keyTerms.map((term, i) => (
+                                                                <span key={i} className="term-badge">{term}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {result.statutoryReferences.length > 0 && (
+                                                    <div>
+                                                        <h4>Statutory References:</h4>
+                                                        <div className="key-terms">
+                                                            {result.statutoryReferences.map((ref, i) => (
+                                                                <span key={i} className="term-badge">{ref}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                <div className="findings">
+                                                    <h4>Detailed Findings:</h4>
+                                                    {result.findings.map((finding, i) => (
+                                                        <div key={i} className={`finding-item ${finding.severity}`}>
+                                                            <div className="finding-header">
+                                                                <strong>{finding.type}</strong>
+                                                                <span className={`severity-badge ${finding.severity}`}>
+                                                                    {finding.severity}
+                                                                </span>
+                                                            </div>
+                                                            <div className="finding-content">
+                                                                {finding.description}
+                                                            </div>
+                                                            <div className="finding-location">
+                                                                Location: {finding.location}
+                                                            </div>
+                                                            <div className="context-snippet">
+                                                                {finding.context}
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+
+        // Initialize PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // Render the application
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
