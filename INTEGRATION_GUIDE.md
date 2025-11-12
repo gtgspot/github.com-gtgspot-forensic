@@ -754,6 +754,447 @@ export const CONFIG = {
 
 ---
 
+## ⚛️ React Components
+
+The system includes 5 production-ready React components for building modern UIs.
+
+### Available Components
+
+Located in `/src/components/`:
+
+1. **FileUploader** - Drag-and-drop file upload with progress tracking
+2. **AnalysisResults** - Display analysis results with filtering and export
+3. **DefectTimeline** - Chronological timeline visualization
+4. **CrossReferenceMatrix** - Multi-document comparison matrix
+5. **PatternInsights** - Machine learning pattern detection display
+
+### Quick Start with React
+
+```javascript
+// Import components
+import {
+  FileUploader,
+  AnalysisResults,
+  DefectTimeline,
+  CrossReferenceMatrix,
+  PatternInsights
+} from './src/components/index.js';
+
+// Import main analyzer
+import ForensicAnalyzer from './src/main.jsx';
+
+function MyApp() {
+  const [analysis, setAnalysis] = useState(null);
+
+  const handleFileProcessed = async (fileData) => {
+    const result = await ForensicAnalyzer.analyzeDocument(fileData.text);
+    setAnalysis(result);
+  };
+
+  return (
+    <div>
+      <FileUploader onFileProcessed={handleFileProcessed} />
+      {analysis && <AnalysisResults analysis={analysis} />}
+    </div>
+  );
+}
+```
+
+### Component Examples
+
+#### 1. FileUploader Component
+
+```javascript
+import { FileUploader } from './src/components';
+
+function App() {
+  const handleFileProcessed = (fileData) => {
+    console.log('File processed:', fileData);
+    // fileData contains: { name, type, size, text, uploadedAt }
+  };
+
+  const handleError = (error) => {
+    console.error('Upload error:', error);
+  };
+
+  return (
+    <FileUploader
+      onFileProcessed={handleFileProcessed}
+      onError={handleError}
+    />
+  );
+}
+```
+
+**Features:**
+- Drag-and-drop support
+- Multi-format support (PDF, DOCX, TXT, PNG, JPG)
+- Progress bar with percentage
+- Real-time status updates
+- Error handling
+- Upload another file option
+
+#### 2. AnalysisResults Component
+
+```javascript
+import { AnalysisResults } from './src/components';
+
+function App() {
+  const analysis = {
+    summary: {
+      totalFindings: 12,
+      criticalIssues: 2,
+      highIssues: 4,
+      mediumIssues: 5,
+      lowIssues: 1,
+      overallStatus: 'Requires Attention'
+    },
+    phases: {
+      presetAnalysis: [
+        {
+          presetName: 'Statutory Analysis',
+          presetId: 1,
+          findings: [
+            {
+              type: 'Missing Element',
+              severity: 'CRITICAL',
+              description: 'No reasonable belief stated',
+              location: 'Page 2, Line 15'
+            }
+          ]
+        }
+      ]
+    }
+  };
+
+  const handleExport = (format) => {
+    console.log('Export to', format);
+    // format: 'pdf' | 'docx' | 'json' | 'csv'
+  };
+
+  return (
+    <AnalysisResults
+      analysis={analysis}
+      onExport={handleExport}
+    />
+  );
+}
+```
+
+**Features:**
+- Summary cards with color-coding
+- Overall status indicator
+- Filter by severity (all, critical, high, medium, low)
+- Sort by severity, type, or preset
+- Export buttons (PDF, DOCX, JSON, CSV)
+- Expandable context sections
+- Severity-based styling
+
+#### 3. DefectTimeline Component
+
+```javascript
+import { DefectTimeline } from './src/components';
+
+function App() {
+  const timeline = {
+    dates: [
+      {
+        date: '2024-03-15T10:30:00',
+        context: 'Traffic stop conducted',
+        source: 'Police Statement'
+      }
+    ]
+  };
+
+  const findings = [
+    {
+      type: 'Procedural Error',
+      severity: 'high',
+      description: 'Breath test conducted without proper warning',
+      timestamp: '2024-03-15T10:35:00',
+      location: 'Page 3'
+    }
+  ];
+
+  return (
+    <DefectTimeline
+      timeline={timeline}
+      findings={findings}
+    />
+  );
+}
+```
+
+**Features:**
+- Chronological event visualization
+- Severity color-coding
+- Filter by severity and type
+- Interactive highlighting on hover
+- Expandable context details
+- Visual timeline track with markers
+
+#### 4. CrossReferenceMatrix Component
+
+```javascript
+import { CrossReferenceMatrix } from './src/components';
+
+function App() {
+  const crossRefData = {
+    overallConsistency: 78,
+    dateDiscrepancies: [
+      {
+        severity: 'high',
+        description: 'Police statement says March 15, Defence says March 16',
+        documents: ['Police Statement', 'Defence Response']
+      }
+    ],
+    timeDiscrepancies: [],
+    locationDiscrepancies: [],
+    eventSequenceDiscrepancies: []
+  };
+
+  const documents = [
+    { name: 'Police Statement' },
+    { name: 'Defence Response' },
+    { name: 'Witness Statement' }
+  ];
+
+  return (
+    <CrossReferenceMatrix
+      crossRefData={crossRefData}
+      documents={documents}
+    />
+  );
+}
+```
+
+**Features:**
+- Overall consistency score with color-coding
+- Document list display
+- Categorized discrepancies (date, time, location, sequence)
+- Filter by category
+- Expandable discrepancy details
+- Severity indicators
+- Affected documents tracking
+
+#### 5. PatternInsights Component
+
+```javascript
+import { PatternInsights } from './src/components';
+
+function App() {
+  const patterns = [
+    {
+      type: 'Missing Reasonable Belief',
+      occurrences: 8,
+      avgSeverity: 'critical',
+      significance: 'high',
+      lastSeen: '2024-11-10T14:30:00',
+      description: 'Recurring issue with s.49 compliance',
+      examples: [
+        'No statement of belief in Document A',
+        'Implied belief only in Document B'
+      ],
+      recommendation: 'Always explicitly state reasonable belief grounds'
+    }
+  ];
+
+  const analysisHistory = [
+    {
+      summary: { totalFindings: 12 }
+    },
+    {
+      summary: { totalFindings: 8 }
+    }
+  ];
+
+  return (
+    <PatternInsights
+      patterns={patterns}
+      analysisHistory={analysisHistory}
+    />
+  );
+}
+```
+
+**Features:**
+- Statistics dashboard (total analyses, findings, averages)
+- Pattern frequency tracking
+- Sort by frequency, severity, or recency
+- Significance badges
+- Example listings
+- Recommendations display
+- Related findings count
+
+### Complete React App Example
+
+See `/examples/react-app-example.jsx` for a complete working application that integrates all components.
+
+To run the example:
+
+```bash
+# Start server
+python3 serve.py
+
+# Open in browser
+open http://localhost:8000/examples/react-app.html
+```
+
+### React Integration Patterns
+
+#### Pattern 1: Full Application
+
+```javascript
+import ForensicAnalyzer from './src/main.jsx';
+import { FileUploader, AnalysisResults } from './src/components';
+
+function FullApp() {
+  const [analysis, setAnalysis] = useState(null);
+
+  useEffect(() => {
+    ForensicAnalyzer.initialize();
+  }, []);
+
+  const handleFile = async (fileData) => {
+    const result = await ForensicAnalyzer.analyzeDocument(fileData.text);
+    setAnalysis(result);
+  };
+
+  return (
+    <>
+      <FileUploader onFileProcessed={handleFile} />
+      <AnalysisResults analysis={analysis} />
+    </>
+  );
+}
+```
+
+#### Pattern 2: Tabbed Interface
+
+```javascript
+function TabbedApp() {
+  const [activeTab, setActiveTab] = useState('results');
+  const [data, setData] = useState(null);
+
+  return (
+    <div>
+      <nav>
+        <button onClick={() => setActiveTab('results')}>Results</button>
+        <button onClick={() => setActiveTab('timeline')}>Timeline</button>
+        <button onClick={() => setActiveTab('patterns')}>Patterns</button>
+      </nav>
+
+      {activeTab === 'results' && <AnalysisResults analysis={data} />}
+      {activeTab === 'timeline' && <DefectTimeline timeline={data.timeline} />}
+      {activeTab === 'patterns' && <PatternInsights patterns={data.patterns} />}
+    </div>
+  );
+}
+```
+
+#### Pattern 3: Dashboard Layout
+
+```javascript
+function Dashboard() {
+  return (
+    <div className="dashboard">
+      <aside className="sidebar">
+        <FileUploader onFileProcessed={handleFile} />
+      </aside>
+
+      <main className="main-content">
+        <section className="results">
+          <AnalysisResults analysis={analysis} />
+        </section>
+
+        <div className="grid">
+          <div className="grid-item">
+            <DefectTimeline timeline={timeline} findings={findings} />
+          </div>
+          <div className="grid-item">
+            <PatternInsights patterns={patterns} />
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+```
+
+### Component Props Reference
+
+#### FileUploader Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| onFileProcessed | function | Yes | Callback when file is processed successfully |
+| onError | function | No | Callback when error occurs |
+
+#### AnalysisResults Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| analysis | object | Yes | Analysis results object |
+| onExport | function | No | Callback for export actions |
+
+#### DefectTimeline Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| timeline | object | No | Timeline data with dates/times |
+| findings | array | No | Array of finding objects |
+
+#### CrossReferenceMatrix Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| crossRefData | object | No | Cross-reference analysis results |
+| documents | array | No | Array of document objects |
+
+#### PatternInsights Props
+
+| Prop | Type | Required | Description |
+|------|------|----------|-------------|
+| patterns | array | No | Array of detected patterns |
+| analysisHistory | array | No | Historical analysis data |
+
+### Styling Components
+
+All components include scoped inline styles using `<style jsx>`. To customize:
+
+**Option 1: Override with CSS**
+
+```css
+/* Your custom CSS file */
+.analysis-results .finding-item.critical {
+  border-left-color: #ff0000 !important;
+}
+```
+
+**Option 2: Pass Custom Classes**
+
+Components accept standard className props:
+
+```javascript
+<AnalysisResults
+  className="my-custom-results"
+  analysis={analysis}
+/>
+```
+
+**Option 3: Theme Variables**
+
+```css
+:root {
+  --color-critical: #f56565;
+  --color-high: #ed8936;
+  --color-medium: #ecc94b;
+  --color-low: #48bb78;
+}
+```
+
+---
+
 ## 🆘 Getting Help
 
 If you encounter issues:
