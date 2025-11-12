@@ -1,45 +1,39 @@
 name: Deploy Forensic Legal Analyzer to GitHub Pages
 
 on:
-  # Runs on pushes to main branch
   push:
-    branches: [ main ]
-  
-  # Allows manual trigger from Actions tab
+    branches: 
+      - main
   workflow_dispatch:
 
-# Sets permissions for GitHub Pages deployment
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# Allow only one concurrent deployment
 concurrency:
-  group: "pages"
+  group: pages
   cancel-in-progress: false
 
 jobs:
-  # Build job
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js (if needed for build)
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-        # Only runs if package.json exists
+          node-version: 20
+          cache: npm
         if: hashFiles('package.json') != ''
 
-      - name: Install dependencies (if package.json exists)
+      - name: Install dependencies
         run: npm ci
         if: hashFiles('package.json') != ''
 
-      - name: Build project (if build script exists)
+      - name: Build project
         run: npm run build
         if: hashFiles('package.json') != ''
         continue-on-error: true
@@ -50,9 +44,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '.'
+          path: .
 
-  # Deployment job
   deploy:
     environment:
       name: github-pages
@@ -63,14 +56,3 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
-```
-
----
-
-## 🚀 **How to Add This to Your Repository**
-
-### **Method 1: Through GitHub Web Interface (Easiest)**
-
-1. **Go to your repository:**
-```
-   https://github.com/gtgspot/4rensic
