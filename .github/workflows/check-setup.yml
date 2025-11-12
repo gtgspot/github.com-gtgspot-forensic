@@ -1,0 +1,75 @@
+name: Setup Check
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  verify-setup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Show environment versions
+        run: |
+          echo "Python version:"
+          python3 --version || true
+          echo "Node version:"
+          node --version || true
+          echo "npm version:"
+          npm --version || true
+
+      - name: npm install (no external deps expected)
+        run: npm install || true
+
+      - name: Make serve.py executable
+        run: chmod +x serve.py || true
+
+      - name: Start serve.py in background and wait for it
+        run: |
+          echo "Starting serve.py (port 8000) in background..."
+          nohup python3 serve.py &>/tmp/serve.log &
+          echo $! >/tmp/serve.pid
+          echo "Waiting for server to respond on http://localhost:8000/index-modular.html ..."
+          for i in {1..20}; do
+            if curl -sSf http://localhost:8000/index-modular.html >/dev/null; then
+              echo "Server responded"
+              break
+            else
+              echo "Waiting for server ($i/20)..."
+              sleep 1
+            fi
+          done
+          if ! curl -sSf http://localhost:8000/index-modular.html >/dev/null; then
+            echo "Server did not respond; dumping /tmp/serve.log"
+            sed -n '1,200p' /tmp/serve.log || true
+            exit 1
+          fi
+
+      - name: Smoke-test index pages
+        run: |
+          echo "Fetching index-modular.html ..."
+          curl -sSf http://localhost:8000/index-modular.html -o /tmp/index-modular.html
+          echo "Size: $(wc -c < /tmp/index-modular.html) bytes"
+          echo "Fetching index.html ..."
+          curl -sSf http://localhost:8000/index.html -o /tmp/index.html
+          echo "Size: $(wc -c < /tmp/index.html) bytes"
+
+      - name: Validate CORS / headers (basic)
+        run: |
+          echo "Checking headers for index-modular.html ..."
+          curl -sI http://localhost:8000/index-modular.html | sed -n '1,200p'
+
+      - name: Cleanup
+        if: always()
+        run: |
+          if [ -f /tmp/serve.pid ]; then
+            pid=$(cat /tmp/serve.pid)
+            echo "Killing serve.py (pid $pid) ..."
+            kill "$pid" || true
+            sleep 1
+          fi
+          echo "Done"
