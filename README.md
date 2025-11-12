@@ -154,6 +154,41 @@ await ForensicAnalyzer.exportAnalysis('pdf', 'report.pdf');
 
 ---
 
+## ⚛️ React Components
+
+The system now includes 5 production-ready React components for building modern UIs:
+
+- **FileUploader.jsx** - Drag-and-drop file upload with progress tracking
+- **AnalysisResults.jsx** - Display analysis results with filtering and export
+- **DefectTimeline.jsx** - Chronological timeline visualization
+- **CrossReferenceMatrix.jsx** - Multi-document comparison matrix
+- **PatternInsights.jsx** - Machine learning pattern detection display
+
+```javascript
+import { FileUploader, AnalysisResults } from './src/components';
+import ForensicAnalyzer from './src/main.jsx';
+
+function App() {
+  const [analysis, setAnalysis] = useState(null);
+
+  const handleFile = async (fileData) => {
+    const result = await ForensicAnalyzer.analyzeDocument(fileData.text);
+    setAnalysis(result);
+  };
+
+  return (
+    <>
+      <FileUploader onFileProcessed={handleFile} />
+      <AnalysisResults analysis={analysis} />
+    </>
+  );
+}
+```
+
+See [INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md#react-components) for complete React documentation and `/examples/react-app-example.jsx` for a full working example.
+
+---
+
 ## 🎓 Usage Examples
 
 ### Basic Analysis
@@ -411,8 +446,10 @@ This software is licensed for use in Victorian legal practice. Unauthorized repr
 
 ## 🎯 Roadmap
 
-### v2.1.0 (Planned)
-- [ ] React UI components
+### v2.1.0 (Current)
+- [✅] React UI components (FileUploader, AnalysisResults, DefectTimeline, CrossReferenceMatrix, PatternInsights)
+- [✅] Component export index
+- [✅] Complete React app example
 - [ ] Additional Victorian statutes
 - [ ] Advanced ML pattern detection
 - [ ] API endpoints for remote analysis
