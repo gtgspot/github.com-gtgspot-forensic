@@ -20,11 +20,16 @@ The **YScript Rules-as-Code Engine** is a sophisticated backend preprocessing sy
 
 ```
 src/engines/
-├── YScriptEngine.js         # Core rule evaluation engine
-├── StatutoryRules.js        # Rule definitions for Victorian statutes
-├── YScriptIntegration.js    # High-level integration and presets
-├── README.md                # This file
-└── example-usage.html       # Interactive demonstration
+├── YScriptEngine.js                      # Core rule evaluation engine
+├── StatutoryRules.js                     # Rule definitions for Victorian statutes
+├── YScriptIntegration.js                 # High-level integration and presets
+├── TableOfProvisionsNavigator.js         # ToC navigation and structure
+├── index.js                              # Centralized exports
+├── README.md                             # This file
+├── example-usage.html                    # Interactive YScript demonstration
+└── table-of-provisions-browser.html      # Interactive ToC browser
+src/data/
+└── roadSafetyActTableOfProvisions.json   # Complete Act structure
 ```
 
 ### YScriptEngine.js
@@ -49,6 +54,90 @@ High-level integration layer with:
 - Document comparison capabilities
 - Defect detection
 - Forensic report generation
+- Table of Provisions integration
+
+### TableOfProvisionsNavigator.js
+
+Structural navigation system providing:
+- Complete hierarchical Act structure (Parts, Divisions, Sections)
+- Cross-reference mapping between related provisions
+- Implementation status tracking
+- Priority sections for future rule development
+- Search and filter capabilities
+- Interactive browser interface
+
+### Table of Provisions (roadSafetyActTableOfProvisions.json)
+
+Complete machine-readable structure of the Road Safety Act 1986 (Vic) Version #127:
+- **9 Parts** covering different aspects of road safety
+- **Multiple Divisions** with specialized focus areas
+- **100+ Sections** with full metadata
+- **Cross-references** showing relationships between provisions
+- **Implementation tracking** linking sections to YScript rules
+- **Priority mapping** for progressive rule implementation
+
+## 📊 Table of Provisions Features
+
+### Structural Framework
+
+The Table of Provisions provides:
+
+1. **Hierarchical Organization**: Parts → Divisions → Sections → Subsections
+2. **Metadata**: Full titles, descriptions, and classifications
+3. **Relationships**: Cross-references and dependencies between sections
+4. **Implementation Status**: Track which sections have rules implemented
+5. **Priority System**: HIGH/MEDIUM/LOW priorities for future implementation
+
+### Key Provision Types
+
+- **Key Provisions**: Important sections requiring careful analysis
+- **Offence Provisions**: Criminal offences under the Act
+- **Procedural Provisions**: Testing and enforcement procedures
+- **Evidentiary Provisions**: Rules of evidence and certificates
+
+### Interactive Browser
+
+Open `table-of-provisions-browser.html` to:
+- Browse the complete Act structure
+- Search sections by keyword
+- Filter by Part, Division, or Topic
+- View implementation status
+- Navigate cross-references
+- Identify priority sections
+
+### ToC Integration Example
+
+```javascript
+import { createAnalyzerWithToC } from './engines/YScriptIntegration.js';
+
+// Create analyzer with ToC integration
+const { analyzer, navigator, analyzeWithContext } = await createAnalyzerWithToC();
+
+// Analyze with structural context
+const result = analyzeWithContext(documentText, '49');
+
+console.log('Section:', result.section.title);
+console.log('Path:', result.navigationPath);
+console.log('Related:', result.relatedSections);
+console.log('Compliance:', result.compliant);
+```
+
+### Gap Analysis
+
+Identify sections without rules:
+
+```javascript
+import { getImplementationGaps, createNavigator } from './engines/index.js';
+import { AllStatutoryRules } from './engines/StatutoryRules.js';
+
+const navigator = createNavigator();
+await navigator.init();
+
+const gaps = getImplementationGaps(navigator, AllStatutoryRules);
+
+console.log(`${gaps.implemented} of ${gaps.totalKeyProvisions} key provisions implemented`);
+console.log('Gaps:', gaps.gapSections);
+```
 
 ## 🚀 Quick Start
 

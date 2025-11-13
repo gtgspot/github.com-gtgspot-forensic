@@ -29,8 +29,16 @@ export {
   YScriptDocumentAnalyzer,
   PresetAnalyzers,
   createAnalyzer,
-  quickAnalysis
+  quickAnalysis,
+  createAnalyzerWithToC,
+  getImplementationGaps
 } from './YScriptIntegration.js';
+
+// Table of Provisions Navigator
+export {
+  TableOfProvisionsNavigator,
+  createNavigator
+} from './TableOfProvisionsNavigator.js';
 
 /**
  * Quick start factory function

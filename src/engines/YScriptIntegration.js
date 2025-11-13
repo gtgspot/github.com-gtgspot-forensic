@@ -470,11 +470,111 @@ export function quickAnalysis(preset, documentText) {
 }
 
 /**
+ * Table of Provisions Integration
+ *
+ * Helper functions to integrate ToC navigation with YScript engine
+ */
+
+/**
+ * Create analyzer with ToC integration
+ * @param {Object} options - Configuration options
+ * @param {boolean} options.loadToC - Load Table of Provisions (default: true)
+ * @returns {Promise<Object>} Analyzer and navigator instances
+ */
+export async function createAnalyzerWithToC(options = {}) {
+  const analyzer = createAnalyzer(options);
+
+  if (options.loadToC !== false) {
+    try {
+      const { createNavigator } = await import('./TableOfProvisionsNavigator.js');
+      const navigator = createNavigator();
+      await navigator.init();
+
+      return {
+        analyzer,
+        navigator,
+        analyzeWithContext: (documentText, sectionNumber) => {
+          const section = navigator.getSection(sectionNumber);
+          const relatedSections = navigator.getRelatedSections(sectionNumber);
+          const hierarchy = navigator.getSectionHierarchy(sectionNumber);
+
+          // Get rules for this section
+          const implStatus = navigator.getImplementationStatus(sectionNumber);
+
+          if (!implStatus) {
+            return {
+              error: `No rules implemented for section ${sectionNumber}`,
+              section: section,
+              hierarchy: hierarchy,
+              relatedSections: relatedSections
+            };
+          }
+
+          // Analyze with implemented rules
+          const results = analyzer.engine.evaluateMultipleRules(implStatus.ruleIds, documentText);
+
+          return {
+            ...results,
+            section: section,
+            hierarchy: hierarchy,
+            relatedSections: relatedSections,
+            navigationPath: navigator.getNavigationPath(sectionNumber)
+          };
+        }
+      };
+    } catch (error) {
+      console.warn('Could not load Table of Provisions Navigator:', error);
+      return { analyzer, navigator: null };
+    }
+  }
+
+  return { analyzer, navigator: null };
+}
+
+/**
+ * Get implementation gaps - sections without rules
+ * @param {Object} navigator - ToC Navigator instance
+ * @param {Array} currentRules - Current rules array
+ * @returns {Object} Gap analysis
+ */
+export function getImplementationGaps(navigator, currentRules) {
+  const implementedSections = new Set();
+
+  // Extract section numbers from current rules
+  currentRules.forEach(rule => {
+    const sectionMatch = rule.section.match(/^(\d+[A-Z]*)/);
+    if (sectionMatch) {
+      implementedSections.add(sectionMatch[1]);
+    }
+  });
+
+  // Get key provisions without implementation
+  const keyProvisions = navigator.getKeyProvisions();
+  const gaps = keyProvisions.filter(section =>
+    !implementedSections.has(section.number)
+  );
+
+  return {
+    totalKeyProvisions: keyProvisions.length,
+    implemented: keyProvisions.length - gaps.length,
+    gaps: gaps.length,
+    gapSections: gaps.map(s => ({
+      number: s.number,
+      title: s.title,
+      part: s.part,
+      division: s.division
+    }))
+  };
+}
+
+/**
  * Default export
  */
 export default {
   YScriptDocumentAnalyzer,
   PresetAnalyzers,
   createAnalyzer,
-  quickAnalysis
+  quickAnalysis,
+  createAnalyzerWithToC,
+  getImplementationGaps
 };
