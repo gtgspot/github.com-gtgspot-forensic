@@ -9,7 +9,8 @@
 
 export class TextExtractor {
   constructor() {
-    this.supportedFormats = [
+    // Document formats
+    this.documentFormats = [
       'text/plain',
       'application/pdf',
       'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
@@ -17,19 +18,82 @@ export class TextExtractor {
       'image/jpeg',
       'image/jpg'
     ];
+
+    // Audio formats (for transcription)
+    this.audioFormats = [
+      'audio/mpeg',
+      'audio/mp3',
+      'audio/wav',
+      'audio/x-wav',
+      'audio/ogg',
+      'audio/webm',
+      'audio/m4a',
+      'audio/x-m4a',
+      'audio/aac',
+      'audio/flac'
+    ];
+
+    // Video formats (extract audio then transcribe)
+    this.videoFormats = [
+      'video/mp4',
+      'video/webm',
+      'video/ogg',
+      'video/quicktime',
+      'video/x-msvideo',
+      'video/x-matroska'
+    ];
+
+    this.supportedFormats = [
+      ...this.documentFormats,
+      ...this.audioFormats,
+      ...this.videoFormats
+    ];
+  }
+
+  /**
+   * Check if file is audio
+   * @param {string} mimeType - MIME type
+   * @returns {boolean} True if audio
+   */
+  isAudio(mimeType) {
+    return mimeType.startsWith('audio/');
+  }
+
+  /**
+   * Check if file is video
+   * @param {string} mimeType - MIME type
+   * @returns {boolean} True if video
+   */
+  isVideo(mimeType) {
+    return mimeType.startsWith('video/');
+  }
+
+  /**
+   * Check if file is audio or video
+   * @param {string} mimeType - MIME type
+   * @returns {boolean} True if audio/video
+   */
+  isAudioVideo(mimeType) {
+    return this.isAudio(mimeType) || this.isVideo(mimeType);
   }
 
   /**
    * Extract text from a file
    * @param {File} file - File object
+   * @param {Function} onProgress - Optional progress callback for audio/video
    * @returns {Promise<string>} Extracted text
    */
-  async extractText(file) {
+  async extractText(file, onProgress = null) {
     if (!this.isSupported(file.type)) {
       throw new Error(`Unsupported file type: ${file.type}`);
     }
 
     const fileType = file.type;
+
+    // Handle audio/video files with AudioExtractor
+    if (this.isAudioVideo(fileType)) {
+      return await this.extractFromAudioVideo(file, onProgress);
+    }
 
     if (fileType === 'text/plain') {
       return await this.extractFromText(file);
@@ -50,7 +114,9 @@ export class TextExtractor {
    * @returns {boolean} True if supported
    */
   isSupported(mimeType) {
-    return this.supportedFormats.includes(mimeType);
+    return this.supportedFormats.includes(mimeType) ||
+           mimeType.startsWith('audio/') ||
+           mimeType.startsWith('video/');
   }
 
   /**
@@ -136,6 +202,30 @@ export class TextExtractor {
     } catch (error) {
       console.error('OCR extraction error:', error);
       throw new Error('Failed to extract text from image');
+    }
+  }
+
+  /**
+   * Extract text from audio/video file via transcription
+   * @param {File} file - Audio or video file
+   * @param {Function} onProgress - Progress callback
+   * @returns {Promise<string>} Transcribed text
+   */
+  async extractFromAudioVideo(file, onProgress = null) {
+    try {
+      // Dynamically import AudioExtractor
+      const { AudioExtractor } = await import('./audioExtractor.js');
+      const audioExtractor = new AudioExtractor();
+
+      const result = await audioExtractor.extractText(file, onProgress);
+
+      // Return just the text for compatibility with existing code
+      // The full result object (with segments, timestamps) is available
+      // when calling AudioExtractor directly
+      return result.text;
+    } catch (error) {
+      console.error('Audio/video transcription error:', error);
+      throw new Error(`Failed to transcribe ${this.isVideo(file.type) ? 'video' : 'audio'}: ${error.message}`);
     }
   }
 }

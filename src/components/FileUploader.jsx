@@ -17,7 +17,12 @@ export const FileUploader = ({ onFileProcessed, onError }) => {
   const fileInputRef = useRef(null);
 
   const supportedFormats = [
-    '.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg'
+    // Documents
+    '.pdf', '.docx', '.txt', '.png', '.jpg', '.jpeg',
+    // Audio
+    '.mp3', '.wav', '.ogg', '.m4a', '.aac', '.flac', '.webm',
+    // Video
+    '.mp4', '.mov', '.avi', '.mkv'
   ];
 
   const handleDragOver = (e) => {
@@ -47,30 +52,63 @@ export const FileUploader = ({ onFileProcessed, onError }) => {
     }
   };
 
+  const isAudioVideo = (mimeType) => {
+    return mimeType.startsWith('audio/') || mimeType.startsWith('video/');
+  };
+
   const processFile = async (file) => {
     setIsProcessing(true);
     setProgress(0);
     setUploadedFile(file);
 
     try {
-      // Simulate progress
-      setProgress(20);
+      setProgress(10);
 
-      // Import TextExtractor dynamically
-      const { TextExtractor } = await import('../utils/textExtractor.js');
-      const extractor = new TextExtractor();
+      let text = '';
+      let metadata = {};
 
-      setProgress(40);
+      // Check if audio/video file
+      if (isAudioVideo(file.type)) {
+        // Import AudioExtractor dynamically
+        const { AudioExtractor } = await import('../utils/audioExtractor.js');
+        const audioExtractor = new AudioExtractor();
 
-      // Check if file type is supported
-      if (!extractor.isSupported(file.type)) {
-        throw new Error(`Unsupported file type: ${file.type}`);
+        setProgress(20);
+
+        // Check if file type is supported
+        if (!audioExtractor.isSupported(file.type)) {
+          throw new Error(`Unsupported audio/video type: ${file.type}`);
+        }
+
+        // Extract and transcribe
+        const result = await audioExtractor.extractText(file, (p) => {
+          setProgress(20 + (p.progress * 0.7));
+        });
+
+        text = result.text;
+        metadata = {
+          segments: result.segments,
+          duration: result.duration,
+          language: result.language,
+          transcribedAt: result.transcribedAt
+        };
+      } else {
+        // Import TextExtractor for documents
+        const { TextExtractor } = await import('../utils/textExtractor.js');
+        const extractor = new TextExtractor();
+
+        setProgress(40);
+
+        // Check if file type is supported
+        if (!extractor.isSupported(file.type)) {
+          throw new Error(`Unsupported file type: ${file.type}`);
+        }
+
+        setProgress(60);
+
+        // Extract text
+        text = await extractor.extractText(file);
       }
-
-      setProgress(60);
-
-      // Extract text
-      const text = await extractor.extractText(file);
 
       setProgress(100);
 
@@ -81,6 +119,7 @@ export const FileUploader = ({ onFileProcessed, onError }) => {
           type: file.type,
           size: file.size,
           text: text,
+          ...metadata,
           uploadedAt: new Date().toISOString()
         });
       }
@@ -121,7 +160,10 @@ export const FileUploader = ({ onFileProcessed, onError }) => {
             <div className="upload-text">Drag & drop file here</div>
             <div className="upload-hint">or click to browse</div>
             <div className="upload-formats">
-              Supports: PDF, DOCX, TXT, PNG, JPG
+              Documents: PDF, DOCX, TXT, PNG, JPG
+            </div>
+            <div className="upload-formats">
+              Audio/Video: MP3, WAV, MP4, MOV (auto-transcribed)
             </div>
           </>
         )}
